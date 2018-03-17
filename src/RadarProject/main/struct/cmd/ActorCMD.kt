@@ -17,6 +17,7 @@ import main.struct.NetGUIDCache.Companion.guidCache
 import main.struct.NetGuidCacheObject
 import main.struct.NetworkGUID
 import main.struct.*
+import main.struct.*
 import main.struct.cmd.PlayerStateCMD.selfID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -41,6 +42,7 @@ object ActorCMD : GameListener {
     val actorHealth = ConcurrentHashMap<NetworkGUID, Float>()
 
     fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
+        actor as Character
         with(bunch) {
             when (waitingHandle) {
                 1 -> if (readBit()) {//bHidden
@@ -62,14 +64,13 @@ object ActorCMD : GameListener {
                     val b = role
                 }
                 5 -> {
-                    val (netGUID, obj) = readObject()
+                    val (netGUID, _) = readObject()
                     actor.owner = if (netGUID.isValid()) netGUID else null
-                    bugln { " owner: [$netGUID] $obj ---------> beOwned:$actor" }
                 }
                 6 -> {
                     repMovement(actor)
                     with(actor) {
-                        when (Type) {
+                        when (type) {
                             AirDrop -> airDropLocation[netGUID] = location
                             Other -> {
                             }
@@ -78,25 +79,18 @@ object ActorCMD : GameListener {
                     }
                 }
                 7 -> {
-                    val (a, obj) = readObject()
-                    val attachTo = if (a.isValid()) {
-                        actors[a]?.attachChildren?.put(actor.netGUID, actor.netGUID)
+                    val (a,_)=readObject()
+                    val attachTo=if (a.isValid()) {
+                        actors[a]?.attachChildren?.add(actor.netGUID)
                         a
                     } else null
                     if (actor.attachParent != null)
                         actors[actor.attachParent!!]?.attachChildren?.remove(actor.netGUID)
-                    actor.attachParent = attachTo
-                    if (actor.netGUID == selfID) {
-                        selfAttachTo = if (attachTo != null)
-                            actors[actor.attachParent!!]
-                        else
-                            null
-                    }
-                    bugln { ",attachTo [$actor---------> $a ${guidCache.getObjectFromNetGUID(a)} ${actors[a]}" }
+                    actor.attachParent=attachTo
                 }
                 8 -> {
                     val locationOffset = propertyVector100()
-                    if (actor.Type == DroopedItemGroup) {
+                    if (actor.type == DroopedItemGroup) {
                         bugln { "${actor.location} locationOffset $locationOffset" }
                     }
                     bugln { ",attachLocation $actor ----------> $locationOffset" }
@@ -338,16 +332,16 @@ object ActorCMD : GameListener {
                     val b = result
                 }
                 81 -> {
-                    val result = propertyBool()
-                    val b = result
+                    val bIsGroggying=propertyBool()
+                    val b=bIsGroggying
                 }
                 82 -> {
-                    val result = propertyBool()
-                    val b = result
+                    val bIsGroggying=propertyBool()
+                    actor.isGroggying = bIsGroggying
                 }
                 83 -> {
-                    val result = propertyBool()
-                    val b = result
+                    val bIsReviving=propertyBool()
+                    val b=bIsReviving
                 }
                 84 -> {
                     val result = propertyBool()
@@ -397,13 +391,15 @@ object ActorCMD : GameListener {
                     val healthMax = propertyFloat()
                 }
                 96 -> {
-                    val GroggyHealth = propertyFloat()
+                    val GroggyHealth=propertyFloat()
+                    actor.groggyHealth=GroggyHealth
                 }
                 97 -> {
                     val GroggyHealthMax = propertyFloat()
                 }
                 98 -> {
-                    val BoostGauge = propertyFloat()
+                    val BoostGauge=propertyFloat()
+                    actor.boostGauge=BoostGauge
                 }
                 99 -> {
                     val BoostGaugeMax = propertyFloat()

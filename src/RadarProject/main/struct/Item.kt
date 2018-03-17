@@ -138,5 +138,22 @@ class Item {
             return null
         }
 
+        fun simplify(description:String):String {
+            try {
+                val words = description.split("_")
+                var c = category
+                for (word in words) {
+                    if (word !in c)
+                        return description
+                    val sub:Any? = c[word]
+                    if (sub is String)
+                        return sub
+                    c = sub as Map<String, Any>
+                }
+            } catch (e:Exception) {
+            }
+            return description
+        }
+
     }
 }

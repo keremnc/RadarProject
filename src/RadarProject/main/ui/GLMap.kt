@@ -19,7 +19,6 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.Color.*
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
@@ -47,6 +46,7 @@ import main.deserializer.channel.ActorChannel.Companion.weapons
 import main.struct.Actor
 import main.struct.Archetype
 import main.struct.Archetype.*
+import main.struct.Character
 import main.struct.NetworkGUID
 import main.struct.cmd.ActorCMD.actorHealth
 import main.struct.cmd.ActorCMD.actorWithPlayerState
@@ -63,11 +63,9 @@ import main.struct.cmd.GameStateCMD.SafetyZonePosition
 import main.struct.cmd.GameStateCMD.SafetyZoneRadius
 import main.struct.cmd.GameStateCMD.TotalWarningDuration
 import main.struct.cmd.PlayerStateCMD.attacks
-import main.struct.cmd.PlayerStateCMD.playerNames
-import main.struct.cmd.PlayerStateCMD.playerNumKills
 import main.struct.cmd.PlayerStateCMD.selfID
 import main.struct.cmd.PlayerStateCMD.selfStateID
-import main.struct.cmd.PlayerStateCMD.teamNumbers
+import main.struct.PlayerState
 import main.struct.cmd.TeamCMD.team
 import main.struct.cmd.selfAttachTo
 import main.struct.cmd.selfCoords
@@ -496,9 +494,11 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         val currentTime = System.currentTimeMillis()
         // Maybe not needed, could be draw error
 
-        selfAttachTo?.apply {
-            selfCoords.set(location.x, location.y)
-            selfDirection = rotation.y
+        actors[selfID]?.apply {
+            actors[attachParent ?: return@apply]?.apply {
+                selfCoords.set(location.x, location.y)
+                selfDirection = rotation.y
+            }
         }
 
         val (selfX, selfY) = selfCoords
@@ -529,7 +529,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         val typeLocation = EnumMap<Archetype, MutableList<renderInfo>>(Archetype::class.java)
         for ((_, actor) in visualActors)
-            typeLocation.compute(actor.Type) { _, v ->
+            typeLocation.compute(actor.type) { _, v ->
                 val list = v ?: ArrayList()
                 val (centerX, centerY) = actor.location
                 val direction = actor.rotation.y
@@ -537,9 +537,8 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 list
             }
 
-        val playerStateGUID = actorWithPlayerState[selfID] ?: 0
-        val numKills = playerNumKills[playerStateGUID] ?: 0
-        val zero = numKills.toString()
+
+       // val zero = numKills.toString()
         paint(fontCamera.combined) {
 
             // NUMBER PANEL
@@ -558,6 +557,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 hubFont.draw(spriteBatch, "$NumAliveTeams", windowWidth - 240f - layout.width / 2, windowHeight - 29f)
             }
 
+            /*
             if (IsTeamMatch) {
 
                 layout.setText(hubFont, zero)
@@ -570,7 +570,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 hubFont.draw(spriteBatch, "$zero", windowWidth - 370f + 128f - layout.width / 2, windowHeight - 29f)
 
             }
-
+            */
 
             // ITEM ESP FILTER PANEL
             spriteBatch.draw(hubpanelblank, 30f, windowHeight - 60f)
@@ -633,7 +633,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             val (x, y) = pinLocation.mapToWindow()
 
             safeZoneHint()
-            drawPlayerNames(typeLocation[Player], selfX, selfY)
+            drawPlayerNames(typeLocation[Player])
             //drawMyself(tuple4(null, selfX, selfY, selfDir.angle()))
 
 
@@ -1223,7 +1223,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val (sx, sy) = Vector2(x, y).mapToWindow()
 
 
-                        if (isTeamMate(actor)) {
+                        if (isTeamMate(actor) > 0) {
 
                             // Can't wait for the "Omg Players don't draw issues
                             spriteBatch.draw(
@@ -1311,27 +1311,26 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         }
     }
 
-    private fun drawPlayerNames(players: MutableList<renderInfo>?, selfX: Float, selfY: Float) {
-
+    private fun drawPlayerNames(players:MutableList<renderInfo>?) {
         players?.forEach {
 
             val zoom = camera.zoom
             val (actor, x, y, _) = it
             if (actor != null && actor.isACharacter) {
                 // actor!!
-
+                val dir=Vector2(x-selfCoords.x,y-selfCoords.y)
                 val (sx, sy) = mapToWindow(x, y)
-                val dir = Vector2(x - selfX, y - selfY)
                 val distance = (dir.len() / 100).toInt()
+                val angle=((dir.angle()+90)%360).toInt()
                 val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
-                val name = playerNames[playerStateGUID] ?: return@forEach
-                val numKills = playerNumKills[playerStateGUID] ?: 0
-                val teamNumber = teamNumbers[playerStateGUID] ?: 0
-                val angle = ((dir.angle() + 90) % 360).toInt()
+                val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
+                val name= PlayerState.name
+                val teamNumber = PlayerState.teamNumber
+                val numKills = PlayerState.numKills
                 val health = actorHealth[actor.netGUID] ?: 100f
                 val equippedWeapons = actorHasWeapons[actor.netGUID]
                 val df = DecimalFormat("###.#")
-                var weapon: String? = ""
+                var weapon=""
 
                 val width = healthBarWidth * zoom
                 val height = healthBarHeight * zoom
@@ -1353,9 +1352,19 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     if (equippedWeapons != null) {
                         for (w in equippedWeapons) {
                             val a = weapons[w ?: continue] ?: continue
-                            val result = a.archetype.pathName.split("_")
-                            weapon += "|" + result[2].substring(4) + "\n"
+                            val result=a.typeName.split("_")
+                            weapon+="<${result[2].substring(4)}>\n"
+
                         }
+                    }
+                    var items=""
+                    for (element in PlayerState.equipableItems) {
+                        if (element == null || element._1.isBlank()) continue
+                        items+="${element._1}->${element._2.toInt()}\n"
+                    }
+                    for (element in PlayerState.castableItems) {
+                        if (element == null || element._1.isBlank()) continue
+                        items+="${element._1}->${element._2}\n"
                     }
 
                     when (nameToggles) {
@@ -1364,11 +1373,31 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                             nameFont.draw(spriteBatch,
                                     "$angle°${distance}m\n" +
                                             "|N: $name\n" +
-                                            "|H: ($${df.format(health)})\n" +
+                                            "|H: \n" +
                                             "|K: ($numKills)\nTN.($teamNumber)\n" +
-                                            "|W: $weapon",
-                                    sx + 20, windowHeight - sy + 20)
-                            rectLine(x - width / 2, hpY, x - width / 2 + healthWidth, hpY, height)
+                                            "|W: $weapon\n" +
+                                            "|S: \n" +
+                                            "|I: $items"
+                                                 ,sx + 20, windowHeight - sy + 20)
+
+                            val healthText = health
+                            when {
+                                healthText > 80f -> hpgreen.draw(spriteBatch, "\n${df.format(health)}", sx + 40, windowHeight - sy + 9)
+                                healthText > 33f -> hporange.draw(spriteBatch, "\n${df.format(health)}", sx + 40, windowHeight - sy + 9)
+                                else -> hpred.draw(spriteBatch, "\n${df.format(health)}", sx + 40, windowHeight - sy + 9)
+                            }
+
+                            if (actor is Character)
+                                when  {
+                                    actor.isGroggying -> {
+                                        hpred.draw(spriteBatch, "DOWNED", sx + 40, windowHeight - sy + -52)
+                                    }
+                                    actor.isReviving -> {
+                                        hporange.draw(spriteBatch, "GETTING REVIVED", sx + 40, windowHeight - sy + -52)
+                                    }
+                                    else -> hpgreen.draw(spriteBatch, "Alive", sx + 40, windowHeight - sy + -52)
+                                }
+
                         }
                         2 -> {
                             nameFont.draw(spriteBatch, "${distance}m\n" +
@@ -1391,7 +1420,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                 else -> hpred.draw(spriteBatch, "\n${df.format(health)}", sx + 40, windowHeight - sy + 8)
 
                             }
-                            nameFont.draw(spriteBatch, "|N: $name\n|D: ${distance}m\n" +
+                            nameFont.draw(spriteBatch, "|N: $name\n|D: ${distance}m $angle°\n" +
                                     "|H:\n" +
                                     "|W: $weapon",
                                     sx + 20, windowHeight - sy + 20)
@@ -1471,16 +1500,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     }
 
 
-    private fun isTeamMate(actor: Actor?): Boolean {
-        if (actor != null) {
-            val playerStateGUID = actorWithPlayerState[actor.netGUID]
-            if (playerStateGUID != null) {
-                val name = playerNames[playerStateGUID] ?: return false
-                if (name in team)
-                    return true
-            }
-        }
-        return false
+    private fun isTeamMate(actor:Actor?):Int {
+        val playerStateGUID=actorWithPlayerState[actor?.netGUID ?: return 0] ?: return 0
+        val playerState=actors[playerStateGUID] as? PlayerState ?: return 0
+        return team[playerState.name] ?: 0
     }
 
     override fun resize(width: Int, height: Int) {
