@@ -835,7 +835,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val items = it._2
                         val (sx, sy) = Vector2(x, y).mapToWindow()
                         val syFix = windowHeight - sy
-                        println("Items: ${it}")
+//                        println("Items: ${it}")
 
                         items.forEach {
                             if ((items !in weaponsToFilter && items !in scopesToFilter && items !in attachToFilter && items !in level2Filter
