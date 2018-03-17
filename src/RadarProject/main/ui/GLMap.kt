@@ -573,7 +573,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             */
 
             // ITEM ESP FILTER PANEL
-            spriteBatch.draw(hubpanelblank, 30f, windowHeight - 60f)
+            spriteBatch.draw(hubpanelblank, 30f, windowHeight - 103f)
 
             // This is what you were trying to do
             if (filterWeapon != 1)
@@ -860,7 +860,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             airDropLocation.values.forEach {
                 val (x, y) = it
                 val airdropcoords = (Vector2(x, y))
-                color = GREEN
+                color = YELLOW
                 line(selfCoords, airdropcoords)
             }
             Gdx.gl.glDisable(GL20.GL_BLEND)
