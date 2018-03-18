@@ -573,7 +573,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             */
 
             // ITEM ESP FILTER PANEL
-            spriteBatch.draw(hubpanelblank, 30f, windowHeight - 103f)
+            spriteBatch.draw(hubpanelblank, 30f, windowHeight - 107f)
 
             // This is what you were trying to do
             if (filterWeapon != 1)
@@ -615,9 +615,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 espFontShadow.draw(spriteBatch, "THROW", 200f, windowHeight - 25f)
 
             if (drawmenu == 1)
-                espFont.draw(spriteBatch, "[INS] Menu ON", 270f, windowHeight - 25f)
+                espFont.draw(spriteBatch, "[F12] Menu ON", 270f, windowHeight - 25f)
             else
-                espFontShadow.draw(spriteBatch, "[INS] Menu OFF", 270f, windowHeight - 25f)
+                espFontShadow.draw(spriteBatch, "[F12] Menu OFF", 270f, windowHeight - 25f)
 
             val num = nameToggles
             espFontShadow.draw(spriteBatch, "[F8] Player Info: $num", 270f, windowHeight - 42f)
@@ -710,8 +710,8 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 if (drawgrid == 1)
 
                     menuFontOn.draw(spriteBatch, "Enabled", 187f, windowHeight / 2 + -125f)
-//                else
-//                    menuFontOFF.draw(spriteBatch, "Disabled", 187f, windowHeight / 2 + -125f)
+                else
+                    menuFontOFF.draw(spriteBatch, "Disabled", 187f, windowHeight / 2 + -125f)
 
                 if (toggleView == 1)
                     menuFontOn.draw(spriteBatch, "Enabled", 187f, windowHeight / 2 + -143f)
