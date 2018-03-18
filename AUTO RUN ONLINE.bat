@@ -4,6 +4,6 @@ echo YOUR IP ADDRESS IS: %_IPaddr%
 echo "RUNNING PUBG-RADAR"
 set /p game=ENTER GAME PC IP:
 echo "%game%"
-java -jar archive\RadarProject.exe %_IPaddr% PortFilter %game%
+ archive\RadarProject.exe %_IPaddr% PortFilter %game%
 
 pause
