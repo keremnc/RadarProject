@@ -9,7 +9,9 @@ import main.struct.Bunch
 import main.struct.NetGuidCacheObject
 import main.struct.NetworkGUID
 import main.struct.*
+import main.util.tuple2
 import java.util.concurrent.ConcurrentHashMap
+import main.struct.Item.Companion.simplify
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object PlayerStateCMD : GameListener {
@@ -18,24 +20,19 @@ object PlayerStateCMD : GameListener {
     }
 
     override fun onGameOver() {
-        playerNames.clear()
-        playerNumKills.clear()
         uniqueIds.clear()
-        teamNumbers.clear()
         attacks.clear()
         selfID = NetworkGUID(0)
         selfStateID = NetworkGUID(0)
     }
 
-    val playerNames = ConcurrentHashMap<NetworkGUID, String>()
-    val playerNumKills = ConcurrentHashMap<NetworkGUID, Int>()
     val uniqueIds = ConcurrentHashMap<String, NetworkGUID>()
-    val teamNumbers = ConcurrentHashMap<NetworkGUID, Int>()
     val attacks = ConcurrentLinkedQueue<Pair<NetworkGUID, NetworkGUID>>()//A -> B
     var selfID = NetworkGUID(0)
     var selfStateID = NetworkGUID(0)
 
     fun process(actor: Actor, bunch: Bunch, repObj: NetGuidCacheObject?, waitingHandle: Int, data: HashMap<String, Any?>): Boolean {
+        actor as PlayerState
         with(bunch) {
             //      println(waitingHandle)
             when (waitingHandle) {
@@ -70,7 +67,7 @@ object PlayerStateCMD : GameListener {
                 }
                 18 -> {
                     val name = propertyString()
-                    playerNames[actor.netGUID] = name
+                    actor.name=name
 //          println("${actor.netGUID} playerID=$name")
                 }
                 19 -> {
@@ -117,15 +114,41 @@ object PlayerStateCMD : GameListener {
                 29 -> {
                     val ReportToken = propertyString()
                 }
-                30 -> {
-                    return false
+                30 -> {//ReplicatedCastableItems
+                val arraySize=readUInt16()
+                actor.castableItems.resize(arraySize)
+                var index=readIntPacked()
+                while (index != 0) {
+                    val idx=index-1
+                    val arrayIdx=idx/3
+                    val structIdx=idx%3
+                    val element=actor.castableItems[arrayIdx] ?: tuple2("",0)
+                    when (structIdx) {
+                        0 -> {
+                            val (guid,castableItemClass)=readObject()
+                            if (castableItemClass != null)
+                                element._1=simplify(castableItemClass.pathName)
+                        }
+                        1 -> {
+                            val ItemType=readInt(8)
+                            val a=ItemType
+                        }
+                        2 -> {
+                            val itemCount=readInt32()
+                            element._2=itemCount
+                        }
+                    }
+                    actor.castableItems[arrayIdx]=element
+                    index=readIntPacked()
                 }
+                return true
+            }
                 31 -> {
                     val ObserverAuthorityType = readInt(4)
                 }
                 32 -> {
                     val teamNumber = readInt(100)
-                    teamNumbers[actor.netGUID] = teamNumber
+                    actor.teamNumber=teamNumber
                 }
                 33 -> {
                     val bIsZombie = propertyBool()
@@ -144,7 +167,7 @@ object PlayerStateCMD : GameListener {
                 }
                 38 -> {
                     val NumKills = propertyInt()
-                    playerNumKills[actor.netGUID] = NumKills
+                    actor.numKills=NumKills
                 }
                 39 -> {
                     val TotalMovedDistanceMeter = propertyFloat()
@@ -160,7 +183,31 @@ object PlayerStateCMD : GameListener {
                     val HeadShots = propertyInt()
                 }
                 43 -> {//ReplicatedEquipableItems
-                    return false
+                    val arraySize=readUInt16()
+                    actor.equipableItems.resize(arraySize)
+                    var index=readIntPacked()
+                    while (index != 0) {
+                        val idx=index-1
+                        val arrayIdx=idx/2
+                        val structIdx=idx%2
+                        val element=actor.equipableItems[arrayIdx] ?: tuple2("",0f)
+                        when (structIdx) {
+                            0 -> {
+                                val (guid,equipableItemClass)=readObject()
+                                if (equipableItemClass != null)
+                                    element._1=simplify(equipableItemClass.pathName)
+                                val a=guid
+                            }
+                            1 -> {
+                                val durability=readFloat()
+                                element._2=durability
+                                val a=durability
+                            }
+                        }
+                        actor.equipableItems[arrayIdx]=element
+                        index=readIntPacked()
+                    }
+                    return true
                 }
                 44 -> {
                     val bIsInAircraft = propertyBool()

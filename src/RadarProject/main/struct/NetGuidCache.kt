@@ -90,7 +90,7 @@ class NetGUIDCache {
         }
         val cacheObject = when (obj) {
             is NetGuidCacheObject -> NetGuidCacheObject(obj.pathName, netGUID)
-            is Actor -> NetGuidCacheObject(obj.archetype.pathName, netGUID)
+            is Actor -> NetGuidCacheObject(obj.typeName, netGUID)
             else -> NetGuidCacheObject("", netGUID)
         }
         objectLoop[netGUID] = cacheObject

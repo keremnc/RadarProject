@@ -40,7 +40,7 @@ object APawnCMD {
                 6 -> {
                     repMovement(actor)
                     with(actor) {
-                        when (Type) {
+                        when (type) {
                             AirDrop -> ActorChannel.airDropLocation[netGUID] = location
                             Other -> {
                             }
@@ -49,18 +49,12 @@ object APawnCMD {
                     }
                 }
                 7 -> {
-                    val (a, obj) = readObject()
-                    val attachTo = if (a.isValid()) {
-                        actors[a]?.attachChildren?.put(actor.netGUID, actor.netGUID)
-                    } else null
-                    if (actor.attachParent != null)
-                        actors[actor.attachParent!!]?.attachChildren?.remove(actor.netGUID)
-                    actor.attachParent = attachTo
-                    bugln { ",attachTo [$actor---------> $a ${NetGUIDCache.guidCache.getObjectFromNetGUID(a)} ${ActorChannel.actors[a]}" }
+                    val bReplicatesAttachment=readBit()
+                    val a=bReplicatesAttachment
                 }
                 8 -> {
                     val locationOffset = propertyVector100()
-                    if (actor.Type == DroopedItemGroup) {
+                    if (actor.type == DroopedItemGroup) {
                         bugln { "${actor.location} locationOffset $locationOffset" }
                     }
                     bugln { ",attachLocation $actor ----------> $locationOffset" }

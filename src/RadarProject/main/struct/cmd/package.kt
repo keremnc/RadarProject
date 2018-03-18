@@ -1,14 +1,12 @@
 @file:Suppress("NAME_SHADOWING")
 package main.struct.cmd
 
-import com.badlogic.gdx.math.*
 import main.struct.Archetype.Plane
 import main.struct.Actor
 import main.struct.Archetype
 import main.struct.*
 import main.struct.Archetype.*
 import main.struct.Bunch
-import main.struct.cmd.TeamCMD
 import java.util.*
 
 typealias cmdProcessor = (Actor, Bunch, NetGuidCacheObject?, Int, HashMap<String, Any?>) -> Boolean
@@ -30,19 +28,19 @@ fun receiveProperties(bunch: Bunch, repObj: NetGuidCacheObject?, actor: Actor): 
             DroppedItem.name to DroppedItemCMD::process,
             DroopedItemGroup.name to APawnCMD::process,
             Grenade.name to APawnCMD::process,
-            TwoSeatBoat.name to APawnCMD::process,
-            SixSeatBoat.name to APawnCMD::process,
-            TwoSeatCar.name to APawnCMD::process,
-            ThreeSeatCar.name to APawnCMD::process,
-            TwoSeatBike.name to APawnCMD::process,
-            FourSeatP.name to APawnCMD::process,
-            FourSeatDU.name to APawnCMD::process,
-            SixSeatCar.name to APawnCMD::process,
-            Plane.name to APawnCMD::process,
+            TwoSeatBoat.name to VehicleCMD::process,
+            SixSeatBoat.name to VehicleCMD::process,
+            TwoSeatCar.name to VehicleCMD::process,
+            ThreeSeatCar.name to VehicleCMD::process,
+            TwoSeatBike.name to VehicleCMD::process,
+            FourSeatP.name to VehicleCMD::process,
+            FourSeatDU.name to VehicleCMD::process,
+            SixSeatCar.name to VehicleCMD::process,
+            Plane.name to VehicleCMD::process,
             Player.name to ActorCMD::process,
             Parachute.name to APawnCMD::process,
             AirDrop.name to AirDropComponentCMD::process,
-            PlayerState.name to PlayerStateCMD::process,
+            Archetype.PlayerState.name to PlayerStateCMD::process,
             Team.name to TeamCMD::process,
             "DroppedItemGroupRootComponent" to DroppedItemGroupRootComponentCMD::process,
             "DroppedItemInteractionComponent" to DroppedItemInteractionComponentCMD::process,

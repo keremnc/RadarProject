@@ -78,7 +78,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             if (actor == null) return
         }
         val actor = actor!!
-        if (actor.Type == DroppedItem && bunch.bitsLeft() == 0)
+        if (actor.type == DroppedItem && bunch.bitsLeft() == 0)
             droppedItemLocation.remove(droppedItemToItem[actor.netGUID] ?: return)
         while (bunch.notEnd()) {
             //header
@@ -86,7 +86,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             val bIsActor = bunch.readBit()
             var repObj: NetGuidCacheObject?
             if (bIsActor) {
-                repObj = NetGuidCacheObject(actor.Type.name, actor.netGUID)
+                repObj = NetGuidCacheObject(actor.type.name, actor.netGUID)
             } else {
                 val (netguid, _subobj) = bunch.readObject()//SubObject, SubObjectNetGUID
                 if (!client) {
@@ -105,7 +105,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
 
                     // adding some stuff
 
-                        if (classObj != null && (actor.Type == DroopedItemGroup || actor.Type == DroppedItem || actor.Type == AirDrop)) {
+                        if (classObj != null && (actor.type == DroopedItemGroup || actor.type == DroppedItem || actor.type == AirDrop)) {
                             val sn = Item.isGood(classObj.pathName)
                             if (sn != null)
                                 droppedItemLocation[netguid] = tuple2(Vector2(actor.location.x, actor.location.y), sn)
@@ -132,12 +132,11 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             try {
                 val outPayload = bunch.deepCopy(NumPayloadBits)
 
-                info { ",${if (bHasRepLayout) "hasRepLayout" else "noRepLayout"},actor[${actor.netGUID.value}]archetype=${actor.archetype}" }
                 var parseComplete=!bHasRepLayout
                 if (bHasRepLayout) {
                     if (!client)// Server shouldn't receive properties.
                         return
-                    if (actor.Type == DroopedItemGroup && repObj?.pathName == "RootComponent")
+                    if (actor.type == DroopedItemGroup && repObj?.pathName == "RootComponent")
                         repObj = NetGuidCacheObject("DroppedItemGroupRootComponent", repObj.outerGUID)
                     //repl_layout_bunch(outPayload, repObj, actor)
                     parseComplete=receiveProperties(outPayload,repObj,actor)
@@ -187,7 +186,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             val Velocity = if (bSerializeVelocity) bunch.readVector() else Vector3.Zero
 
             if (actor == null && archetype != null) {
-                val _actor = Actor(netGUID, archetypeNetGUID, archetype, chIndex)
+                val _actor=makeActor(netGUID,archetype)
                 with(_actor) {
                     location = Location
                     rotation = Rotation
@@ -196,7 +195,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
                     actor = this
                     if (client) {
                         actors[netGUID] = this
-                        when (Type) {
+                        when (type) {
                             Weapon -> weapons[netGUID] = this
                             AirDrop -> airDropLocation[netGUID]=location
                             DeathDropItemPackage -> corpseLocation[netGUID] = location
@@ -210,7 +209,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             bugln { ",[$netGUID] spawn:$Location,$Rotation,$Velocity, actor:$actor" }
         } else {
             if (newActor == null) return
-            actor = Actor(netGUID, newActor.outerGUID, newActor, chIndex)
+            actor=makeActor(netGUID,newActor)
             actor!!.isStatic = true
         }
 

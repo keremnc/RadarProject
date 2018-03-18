@@ -19,7 +19,6 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.Color.*
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
@@ -47,6 +46,7 @@ import main.deserializer.channel.ActorChannel.Companion.weapons
 import main.struct.Actor
 import main.struct.Archetype
 import main.struct.Archetype.*
+import main.struct.Character
 import main.struct.NetworkGUID
 import main.struct.cmd.ActorCMD.actorHealth
 import main.struct.cmd.ActorCMD.actorWithPlayerState
@@ -63,11 +63,9 @@ import main.struct.cmd.GameStateCMD.SafetyZonePosition
 import main.struct.cmd.GameStateCMD.SafetyZoneRadius
 import main.struct.cmd.GameStateCMD.TotalWarningDuration
 import main.struct.cmd.PlayerStateCMD.attacks
-import main.struct.cmd.PlayerStateCMD.playerNames
-import main.struct.cmd.PlayerStateCMD.playerNumKills
 import main.struct.cmd.PlayerStateCMD.selfID
 import main.struct.cmd.PlayerStateCMD.selfStateID
-import main.struct.cmd.PlayerStateCMD.teamNumbers
+import main.struct.PlayerState
 import main.struct.cmd.TeamCMD.team
 import main.struct.cmd.selfAttachTo
 import main.struct.cmd.selfHeight
@@ -153,7 +151,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private lateinit var hubpanelblank: Texture
     private lateinit var vehicle: Texture
     private lateinit var boato: Texture
-
+    private lateinit var teamarrow: Texture
 
     private lateinit var vano: Texture
     private lateinit var vehicleo: Texture
@@ -174,6 +172,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private lateinit var jetski: Texture
     private lateinit var player: Texture
     private lateinit var playersight: Texture
+    private lateinit var teamsight: Texture
     private lateinit var parachute: Texture
     private lateinit var grenade: Texture
     private lateinit var hubFont: BitmapFont
@@ -393,7 +392,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         plane = Texture(Gdx.files.internal("images/plane.png"))
         player = Texture(Gdx.files.internal("images/player.png"))
         playersight = Texture(Gdx.files.internal("images/green_view_line.png"))
+        teamsight = Texture(Gdx.files.internal("images/teamsight.png"))
         arrowsight = Texture(Gdx.files.internal("images/red_view_line.png"))
+        teamarrow = Texture(Gdx.files.internal("images/team.png"))
         parachute = Texture(Gdx.files.internal("images/parachute.png"))
         boat = Texture(Gdx.files.internal("images/boat.png"))
         boato = Texture(Gdx.files.internal("images/boato.png"))
@@ -509,10 +510,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         val currentTime = System.currentTimeMillis()
         // Maybe not needed, could be draw error
 
-        selfAttachTo?.apply {
-            selfCoords.set(location.x, location.y)
-            selfHeight = location.z
-            selfDirection = rotation.y
+        actors[selfID]?.apply {
+            actors[attachParent ?: return@apply]?.apply {
+                selfCoords.set(location.x, location.y)
+                selfHeight = location.z
+                selfDirection = rotation.y
+            }
         }
 
         val (selfX, selfY) = selfCoords
@@ -541,7 +544,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         val typeLocation = EnumMap<Archetype, MutableList<renderInfo>>(Archetype::class.java)
         for ((_, actor) in visualActors)
-            typeLocation.compute(actor.Type) { _, v ->
+            typeLocation.compute(actor.type) { _, v ->
                 val list = v ?: ArrayList()
                 val (centerX, centerY) = actor.location
                 val direction = actor.rotation.y
@@ -549,9 +552,8 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 list
             }
 
-        val playerStateGUID = actorWithPlayerState[selfID] ?: 0
-        val numKills = playerNumKills[playerStateGUID] ?: 0
-        val zero = numKills.toString()
+
+       // val zero = numKills.toString()
         paint(fontCamera.combined) {
 
             // NUMBER PANEL
@@ -570,6 +572,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 hubFont.draw(spriteBatch, "$NumAliveTeams", windowWidth - 240f - layout.width / 2, windowHeight - 29f)
             }
 
+            /*
             if (IsTeamMatch) {
 
                 layout.setText(hubFont, zero)
@@ -582,10 +585,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 hubFont.draw(spriteBatch, "$zero", windowWidth - 370f + 128f - layout.width / 2, windowHeight - 29f)
 
             }
-
+            */
 
             // ITEM ESP FILTER PANEL
-            spriteBatch.draw(hubpanelblank, 30f, windowHeight - 60f)
+            spriteBatch.draw(hubpanelblank, 30f, windowHeight - 107f)
 
             // This is what you were trying to do
             if (filterWeapon != 1)
@@ -626,11 +629,26 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             else
                 espFontShadow.draw(spriteBatch, "THROW", 200f, windowHeight - 25f)
 
+            if (drawmenu == 1)
+                espFont.draw(spriteBatch, "[F12] Menu ON", 270f, windowHeight - 25f)
+            else
+                espFontShadow.draw(spriteBatch, "[F12] Menu OFF", 270f, windowHeight - 25f)
+
+            val num = nameToggles
+            espFontShadow.draw(spriteBatch, "[F8] Player Info: $num", 270f, windowHeight - 42f)
+
+            val znum = ZoomToggles
+            espFontShadow.draw(spriteBatch, "[Num8] Zoom Toggle: $znum", 40f, windowHeight - 68f)
+
+            val vnum = VehicleInfoToggles
+            espFontShadow.draw(spriteBatch, "[F5] Vehicle Toggles: $vnum", 40f, windowHeight - 85f)
+
+
             val pinDistance = (pinLocation.cpy().sub(selfX, selfY).len() / 100).toInt()
             val (x, y) = rotatePosRespectToSelf(pinLocation).mapToWindow()
 
             safeZoneHint()
-            drawPlayerNames(typeLocation[Player], selfX, selfY)
+            drawPlayerNames(typeLocation[Player])
             //drawMyself(tuple4(null, selfX, selfY, selfDir.angle()))
 
 
@@ -856,7 +874,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             airDropLocation.values.forEach {
                 val (x, y) = it
                 val airdropcoords = rotatePosRespectToSelf(Vector2(x, y))
-                color = GREEN
+                color = YELLOW
                 line(selfCoords, airdropcoords)
             }
             Gdx.gl.glDisable(GL20.GL_BLEND)
@@ -1248,13 +1266,22 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val (actor, x, y, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
+                        val playerStateGUID = actorWithPlayerState[actor!!.netGUID] ?: return@forEach
+                        val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
+                        val teamNumber = PlayerState.teamNumber
 
-                        if (isTeamMate(actor)) {
+                        if (teamNumber == 1) {
 
                             // Can't wait for the "Omg Players don't draw issues
+                            spriteBatch.draw(
+                                    teamarrow,
+                                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
+                                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
+                                    nDir * -1, 0, 0, 64, 64, true, false)
+
                             if (toggleView == 1) {
                                 spriteBatch.draw(
-                                        playersight,
+                                        teamsight,
                                         sx + 1, windowHeight - sy - 2,
                                         2.toFloat() / 2,
                                         2.toFloat() / 2,
@@ -1263,13 +1290,13 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                         nDir * -1, 0, 0, 512, 64, true, false)
                             }
 
+                        } else {
+
                             spriteBatch.draw(
-                                    player,
+                                    arrow,
                                     sx, windowHeight - sy - 2, 4.toFloat() / 2,
                                     4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
                                     nDir * -1, 0, 0, 64, 64, true, false)
-
-                        } else {
 
                             if (toggleView == 1) {
                                 spriteBatch.draw(
@@ -1281,13 +1308,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                         10f, 10f,
                                         nDir * -1, 0, 0, 512, 64, true, false)
                             }
-
-                            spriteBatch.draw(
-                                    arrow,
-                                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
-                                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
-                                    nDir * -1, 0, 0, 64, 64, true, false)
-
                         }
                     }
 
@@ -1342,37 +1362,49 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         }
     }
 
-    private fun drawPlayerNames(players: MutableList<renderInfo>?, selfX: Float, selfY: Float) {
+    private fun drawPlayerNames(players: MutableList<renderInfo>?) {
 
         if (nameToggles > 0) {
+
             players?.forEach {
 
-                val zoom = camera.zoom
-                val (actor, x, y, z, _) = it
-                if (actor != null && actor.isACharacter) {
-                    // actor!!
+            val zoom = camera.zoom
+            val (actor, x, y, z, _) = it
+            if (actor != null && actor.isACharacter) {
+                // actor!!
 
-                    val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
-                    val dir = Vector2(x - selfX, y - selfY)
-                    val distance = (dir.len() / 100).toInt()
-                    val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
-                    val name = playerNames[playerStateGUID] ?: return@forEach
-                    val numKills = playerNumKills[playerStateGUID] ?: 0
-                    val angle = ((dir.angle() + 90) % 360).toInt()
-                    val health = actorHealth[actor.netGUID] ?: 100f
-                    val equippedWeapons = actorHasWeapons[actor.netGUID]
+                val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
+                val dir = Vector2(x - selfCoords.x,y - selfCoords.y)
+                val distance = (dir.len() / 100).toInt()
+                val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
+                val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
+                val name= PlayerState.name
+                val teamNumber = PlayerState.teamNumber
+                val numKills = PlayerState.numKills
+                val angle = ((dir.angle() + 90) % 360).toInt()
+                val health = actorHealth[actor.netGUID] ?: 100f
+                val equippedWeapons = actorHasWeapons[actor.netGUID]
+                val df = DecimalFormat("###.#")
 
-                    val df = DecimalFormat("###.#")
 
-                    val deltaHeight = (if (z > selfHeight) "+" else "-") + df.format(abs(z - selfHeight) / 100f)
-                    var weapon: String? = ""
+                val deltaHeight = (if (z > selfHeight) "+" else "-") + df.format(abs(z - selfHeight) / 100f)
+                var weapon: String? = ""
 
                     if (equippedWeapons != null) {
                         for (w in equippedWeapons) {
                             val a = weapons[w ?: continue] ?: continue
-                            val result = a.archetype.pathName.split("_")
+                            val result = a.typeName.split("_")
                             weapon += " - " + result[2].substring(4) + "\n"
                         }
+                    }
+                    var items=""
+                    for (element in PlayerState.equipableItems) {
+                        if (element == null || element._1.isBlank()) continue
+                        items+="${element._1}->${element._2.toInt()}\n"
+                    }
+                    for (element in PlayerState.castableItems) {
+                        if (element == null || element._1.isBlank()) continue
+                        items+="${element._1}->${element._2}\n"
                     }
 
                     val drawName = nameToggles >= 1
@@ -1389,6 +1421,16 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         }
                     }
 
+                if (actor is Character)
+                    when  {
+                        actor.isGroggying -> {
+                            hpred.draw(spriteBatch, "DOWNED", sx + 40, windowHeight - sy + -52)
+                        }
+                        actor.isReviving -> {
+                            hporange.draw(spriteBatch, "GETTING REVIVED", sx + 40, windowHeight - sy + -52)
+                        }
+                        else -> hpgreen.draw(spriteBatch, "Alive", sx + 40, windowHeight - sy + -52)
+                    }
                     nameFont.draw(spriteBatch,
                             (if (drawName) "$name\n" else "") +
                                     (if (drawPos) "$angle°\n${distance}m | ${deltaHeight}m\n" else "") +
@@ -1466,16 +1508,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     }
 
 
-    private fun isTeamMate(actor: Actor?): Boolean {
-        if (actor != null) {
-            val playerStateGUID = actorWithPlayerState[actor.netGUID]
-            if (playerStateGUID != null) {
-                val name = playerNames[playerStateGUID] ?: return false
-                if (name in team)
-                    return true
-            }
-        }
-        return false
+    private fun isTeamMate(actor:Actor?):Int {
+        val playerStateGUID=actorWithPlayerState[actor?.netGUID ?: return 0] ?: return 0
+        val playerState=actors[playerStateGUID] as? PlayerState ?: return 0
+        return team[playerState.name] ?: 0
     }
 
     override fun resize(width: Int, height: Int) {
