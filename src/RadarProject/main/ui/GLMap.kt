@@ -150,7 +150,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private lateinit var hubpanelblank: Texture
     private lateinit var vehicle: Texture
     private lateinit var boato: Texture
-
+    private lateinit var teamarrow: Texture
 
     private lateinit var vano: Texture
     private lateinit var vehicleo: Texture
@@ -171,6 +171,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private lateinit var jetski: Texture
     private lateinit var player: Texture
     private lateinit var playersight: Texture
+    private lateinit var teamsight: Texture
     private lateinit var parachute: Texture
     private lateinit var grenade: Texture
     private lateinit var hubFont: BitmapFont
@@ -378,7 +379,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         plane = Texture(Gdx.files.internal("images/plane.png"))
         player = Texture(Gdx.files.internal("images/player.png"))
         playersight = Texture(Gdx.files.internal("images/green_view_line.png"))
+        teamsight = Texture(Gdx.files.internal("images/teamsight.png"))
         arrowsight = Texture(Gdx.files.internal("images/red_view_line.png"))
+        teamarrow = Texture(Gdx.files.internal("images/team.png"))
         parachute = Texture(Gdx.files.internal("images/parachute.png"))
         boat = Texture(Gdx.files.internal("images/boat.png"))
         boato = Texture(Gdx.files.internal("images/boato.png"))
@@ -1221,20 +1224,22 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     for ((_, _) in typeLocation) {
                         val (actor, x, y, dir) = it
                         val (sx, sy) = Vector2(x, y).mapToWindow()
+                        val playerStateGUID = actorWithPlayerState[actor!!.netGUID] ?: return@forEach
+                        val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
+                        val teamNumber = PlayerState.teamNumber
 
-
-                        if (isTeamMate(actor) > 0) {
+                        if (teamNumber == 1) {
 
                             // Can't wait for the "Omg Players don't draw issues
                             spriteBatch.draw(
-                                    player,
+                                    teamarrow,
                                     sx, windowHeight - sy - 2, 4.toFloat() / 2,
                                     4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
                                     dir * -1, 0, 0, 64, 64, true, false)
 
                             if (toggleView == 1) {
                                 spriteBatch.draw(
-                                        playersight,
+                                        teamsight,
                                         sx + 1, windowHeight - sy - 2,
                                         2.toFloat() / 2,
                                         2.toFloat() / 2,
