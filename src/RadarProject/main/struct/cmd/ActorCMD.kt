@@ -433,7 +433,7 @@ object ActorCMD : GameListener {
                     val result = propertyBool()
                     val b = result
                 }
-                else -> return false
+                else -> return ActorReplicator.process(actor, bunch, repObj, waitingHandle, data)
             }
             return true
         }

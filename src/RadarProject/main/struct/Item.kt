@@ -28,8 +28,8 @@ class Item {
                                 "Muzzle" to mapOf(
                                         "Choke" to "Choke",
                                         "Compensator" to mapOf(
-                                                "Large" to "AR.Comp"
-                                                //"SniperRifle" to "S.Comp"
+                                                "Large" to "AR.Comp",
+                                                "SniperRifle" to "S.Comp"
                                         ),
                                         "FlashHider" to mapOf(
                                                 "Large" to "FH",

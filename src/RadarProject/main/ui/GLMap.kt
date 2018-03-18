@@ -66,7 +66,7 @@ import main.struct.cmd.PlayerStateCMD.attacks
 import main.struct.cmd.PlayerStateCMD.selfID
 import main.struct.cmd.PlayerStateCMD.selfStateID
 import main.struct.PlayerState
-import main.struct.cmd.TeamCMD.team
+import main.struct.cmd.TeamReplicator.team
 import main.struct.cmd.selfAttachTo
 import main.struct.cmd.selfHeight
 import main.struct.cmd.selfCoords
@@ -194,7 +194,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     //////////////////////////////
     private var filterWeapon = -1
     private var filterAttach = -1
+    private var filterArmorBag = 1
     private var filterLvl2 = -1
+    private var filterLvl3 = 1
     private var filterScope = -1
     private var filterHeals = -1
     private var filterAmmo = 1
@@ -214,6 +216,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private var weaponsToFilter = arrayListOf("")
     private var attachToFilter = arrayListOf("")
     private var level2Filter = arrayListOf("")
+    private var level3Filter = arrayListOf("")
     private var healsToFilter = arrayListOf("")
     private var ammoToFilter = arrayListOf("")
     private var throwToFilter = arrayListOf("")
@@ -320,11 +323,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         // Toggle View Line
             F4 -> toggleView = toggleView * -1
 
-        // Toggle Vehicles
-        //  F5 -> toggleVehicles = toggleVehicles * -1
-        //  F6 -> toggleVNames = toggleVNames * -1
-
-        // Toggle Menu
+        // Toggle Menu5
             F12 -> drawmenu = drawmenu * -1
 
         // Icon Filter Keybinds
@@ -336,10 +335,36 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             NUMPAD_6 -> filterScope = filterScope * -1
             NUMPAD_0 -> filterAmmo = filterAmmo * -1
 
+        // Level 2 & 3 Toggle
+
+                F6 -> {
+                    if (filterArmorBag <= 4) {
+                        filterArmorBag += 1
+                    }
+                    if (filterArmorBag == 4) {
+                        filterArmorBag = 1
+                    }
+                    // then
+                    if (filterArmorBag == 1) {
+                        filterLvl3 = 1
+                    }
+                    // or
+                    if (filterArmorBag == 2) {
+                        filterLvl2 = 1
+                    }
+                    // or
+                    if (filterArmorBag == 3) {
+                        //both?
+                        filterLvl2 = 1
+                    if (filterArmorBag == 3) {
+                        filterLvl3 = 1
+                    }
+                    }
+                }
+
         // Zoom In/Out || Overrides Max/Min Zoom
             MINUS -> camera.zoom = camera.zoom + 0.00525f
             PLUS -> camera.zoom = camera.zoom - 0.00525f
-        // lol
         }
         return false
     }
@@ -803,7 +828,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         level2Filter = if (filterLvl2 != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("Bag2", "Armor2", "Helmet2", "Bag3", "Armor3", "Helmet3")
+            arrayListOf("Bag2", "Armor2", "Helmet2")
+        }
+        level3Filter = if (filterLvl3 != 1) {
+            arrayListOf("")
+        } else {
+            arrayListOf("Bag3", "Armor3", "Helmet3")
         }
         paint(itemCamera.combined) {
             //Draw Corpse Icon
@@ -839,7 +869,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
                         items.forEach {
                             if ((items !in weaponsToFilter && items !in scopesToFilter && items !in attachToFilter && items !in level2Filter
-                                    && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
+                                    && items !in level3Filter && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
                                     && camera.zoom < 0.0833f && sx > 0 && sx < windowWidth && syFix > 0 && syFix < windowHeight) {
                                 iconImages.setIcon(items)
 
@@ -1255,8 +1285,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val playerStateGUID = actorWithPlayerState[actor!!.netGUID] ?: return@forEach
                         val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
                         val teamNumber = PlayerState.teamNumber
+                        val attach=actor.attachChildren.firstOrNull()
+                        val teamId=isTeamMate(actor)
 
-                        if (teamNumber == 1) {
+                        if (teamId > 0 ) {
 
                             // Can't wait for the "Omg Players don't draw issues
                             if (toggleView == 1) {
@@ -1378,22 +1410,22 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     val deltaHeight = (if (z > selfHeight) "+" else "-") + df.format(abs(z - selfHeight) / 100f)
                     var weapon: String? = ""
 
-                    if (equippedWeapons != null) {
-                        for (w in equippedWeapons) {
-                            val a = weapons[w ?: continue] ?: continue
+                        if (equippedWeapons != null) {
+                            for (w in equippedWeapons) {
+                                val a = weapons[w ?: continue] ?: continue
                             val result = a.typeName.split("_")
                             weapon += " - " + result[2].substring(4) + "\n"
+                            }
                         }
-                    }
                     var items = ""
-                    for (element in PlayerState.equipableItems) {
-                        if (element == null || element._1.isBlank()) continue
+                        for (element in PlayerState.equipableItems) {
+                            if (element == null || element._1.isBlank()) continue
                         items += "${element._1}->${element._2.toInt()}\n"
-                    }
-                    for (element in PlayerState.castableItems) {
-                        if (element == null || element._1.isBlank()) continue
+                        }
+                        for (element in PlayerState.castableItems) {
+                            if (element == null || element._1.isBlank()) continue
                         items += "${element._1}->${element._2}\n"
-                    }
+                        }
 
                     val drawName = nameToggles >= 1
                     val drawPos = nameToggles >= 2
@@ -1418,9 +1450,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                         else -> hpred.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
                                     }
                                 }
+                                }
                             }
                         }
-                    }
                     nameFont.draw(spriteBatch,
                             (if (drawName) "$name\n" else "") +
                                     (if (drawPos) "$angle°\n${distance}m | ${deltaHeight}m\n" else "") +
@@ -1428,10 +1460,11 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                     (if (drawPVP) "$numKills Kills\n$weapon" else ""),
                             sx + 20, windowHeight - sy + 30)
 
+                    }
                 }
             }
         }
-    }
+
 
 
     private fun drawGrid() {

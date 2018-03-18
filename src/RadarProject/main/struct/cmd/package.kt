@@ -7,6 +7,7 @@ import main.struct.Archetype
 import main.struct.*
 import main.struct.Archetype.*
 import main.struct.Bunch
+import main.struct.cmd.Replicator.processors
 import java.util.*
 
 typealias cmdProcessor = (Actor, Bunch, NetGuidCacheObject?, Int, HashMap<String, Any?>) -> Boolean
@@ -22,7 +23,10 @@ fun receiveProperties(bunch: Bunch, repObj: NetGuidCacheObject?, actor: Actor): 
     return waitingHandle == 0
 }
 
+
+object Replicator {
     val processors = mapOf<String, cmdProcessor>(
+            Team.name to TeamReplicator::process,
             GameState.name to GameStateCMD::process,
             Other.name to APawnCMD::process,
             DroppedItem.name to DroppedItemCMD::process,
@@ -41,8 +45,8 @@ fun receiveProperties(bunch: Bunch, repObj: NetGuidCacheObject?, actor: Actor): 
             Parachute.name to APawnCMD::process,
             AirDrop.name to AirDropComponentCMD::process,
             Archetype.PlayerState.name to PlayerStateCMD::process,
-            Team.name to TeamCMD::process,
             "DroppedItemGroupRootComponent" to DroppedItemGroupRootComponentCMD::process,
             "DroppedItemInteractionComponent" to DroppedItemInteractionComponentCMD::process,
-            WeaponProcessor.name to WeaponProcessorCMD::process
+            WeaponProcessor.name to  WeaponProcessorReplicator::process
     )
+}
