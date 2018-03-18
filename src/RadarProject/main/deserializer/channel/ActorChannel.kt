@@ -62,7 +62,6 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
         }
         ProcessBunch(bunch)
     }
-
     fun ProcessBunch(bunch: Bunch) {
         if (client && actor == null) {
             if (!bunch.bOpen) {
@@ -110,8 +109,6 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
                             if (sn != null)
                                 droppedItemLocation[netguid] = tuple2(Vector2(actor.location.x, actor.location.y), sn)
                         }
-
-                   //  ---------------------
 
                         if (!classGUID.isValid() || classObj == null)
                             continue
