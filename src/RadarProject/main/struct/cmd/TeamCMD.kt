@@ -1,20 +1,12 @@
-@file:Suppress("NAME_SHADOWING")
-
 package main.struct.cmd
 
-import main.GameListener
-import main.bugln
-import main.register
-import main.struct.Actor
-import main.struct.Bunch
-import main.struct.*
+import main.*
 import main.struct.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
-
-object TeamCMD : GameListener {
-    private val counter= AtomicInteger(0)
+object TeamReplicator: GameListener {
+    private val counter=AtomicInteger(0)
     val team=ConcurrentHashMap<String,Int>()
 
     init {
@@ -38,9 +30,10 @@ object TeamCMD : GameListener {
                 }
                 18 -> {
                     val playerName=propertyString()
-                    team[playerName]=counter.incrementAndGet()
+                    team[playerName]= counter.incrementAndGet()
+                    //println(team)
                 }
-                else -> return ActorCMD.process(actor,bunch,repObj,waitingHandle,data)
+                else -> return ActorReplicator.process(actor, bunch, repObj, waitingHandle, data)
             }
             return true
         }

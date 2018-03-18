@@ -66,7 +66,7 @@ import main.struct.cmd.PlayerStateCMD.attacks
 import main.struct.cmd.PlayerStateCMD.selfID
 import main.struct.cmd.PlayerStateCMD.selfStateID
 import main.struct.PlayerState
-import main.struct.cmd.TeamCMD.team
+import main.struct.cmd.TeamReplicator.team
 import main.struct.cmd.selfAttachTo
 import main.struct.cmd.selfCoords
 import main.struct.cmd.selfDirection
@@ -193,7 +193,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     //////////////////////////////
     private var filterWeapon = -1
     private var filterAttach = -1
+    private var filterArmorBag = 1
     private var filterLvl2 = -1
+    private var filterLvl3 = 1
     private var filterScope = -1
     private var filterHeals = -1
     private var filterAmmo = 1
@@ -212,6 +214,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private var weaponsToFilter = arrayListOf("")
     private var attachToFilter = arrayListOf("")
     private var level2Filter = arrayListOf("")
+    private var level3Filter = arrayListOf("")
     private var healsToFilter = arrayListOf("")
     private var ammoToFilter = arrayListOf("")
     private var throwToFilter = arrayListOf("")
@@ -307,11 +310,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         // Toggle View Line
             F4 -> toggleView = toggleView * -1
 
-        // Toggle Vehicles
-        //  F5 -> toggleVehicles = toggleVehicles * -1
-        //  F6 -> toggleVNames = toggleVNames * -1
-
-        // Toggle Menu
+        // Toggle Menu5
             F12 -> drawmenu = drawmenu * -1
 
         // Icon Filter Keybinds
@@ -322,6 +321,33 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             NUMPAD_5 -> filterAttach = filterAttach * -1
             NUMPAD_6 -> filterScope = filterScope * -1
             NUMPAD_0 -> filterAmmo = filterAmmo * -1
+
+        // Level 2 & 3 Toggle
+
+                F6 -> {
+                    if (filterArmorBag <= 4) {
+                        filterArmorBag += 1
+                    }
+                    if (filterArmorBag == 4) {
+                        filterArmorBag = 1
+                    }
+                    // then
+                    if (filterArmorBag == 1) {
+                        filterLvl3 = 1
+                    }
+                    // or
+                    if (filterArmorBag == 2) {
+                        filterLvl2 = 1
+                    }
+                    // or
+                    if (filterArmorBag == 3) {
+                        //both?
+                        filterLvl2 = 1
+                    if (filterArmorBag == 3) {
+                        filterLvl3 = 1
+                    }
+                    }
+                }
 
         // Zoom In/Out || Overrides Max/Min Zoom
             MINUS -> camera.zoom = camera.zoom + 0.00525f
@@ -631,6 +657,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             val vnum = VehicleInfoToggles
             espFontShadow.draw(spriteBatch, "[F5] Vehicle Toggles: $vnum", 40f, windowHeight - 85f)
 
+            val mnum = filterArmorBag
+            espFontShadow.draw(spriteBatch, "[F6] Item Armor Toggle: $mnum", 35f, windowHeight - 115f)
+
+
 
             val pinDistance = (pinLocation.cpy().sub(selfX, selfY).len() / 100).toInt()
             val (x, y) = pinLocation.mapToWindow()
@@ -805,7 +835,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         level2Filter = if (filterLvl2 != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("Bag2", "Armor2", "Helmet2", "Bag3", "Armor3", "Helmet3")
+            arrayListOf("Bag2", "Armor2", "Helmet2")
+        }
+        level3Filter = if (filterLvl3 != 1) {
+            arrayListOf("")
+        } else {
+            arrayListOf("Bag3", "Armor3", "Helmet3")
         }
         paint(itemCamera.combined) {
             //Draw Corpse Icon
@@ -842,7 +877,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
                         items.forEach {
                             if ((items !in weaponsToFilter && items !in scopesToFilter && items !in attachToFilter && items !in level2Filter
-                                            && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
+                                            && items !in level3Filter && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
                                     && iconScale > 20 && sx > 0 && sx < windowWidth && syFix > 0 && syFix < windowHeight) {
                                 iconImages.setIcon(items)
 
@@ -1227,8 +1262,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val playerStateGUID = actorWithPlayerState[actor!!.netGUID] ?: return@forEach
                         val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
                         val teamNumber = PlayerState.teamNumber
+                        val attach=actor.attachChildren.firstOrNull()
+                        val teamId=isTeamMate(actor)
 
-                        if (teamNumber == 1) {
+                        if (teamId > 0 ) {
 
                             // Can't wait for the "Omg Players don't draw issues
                             spriteBatch.draw(
@@ -1323,20 +1360,19 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             val (actor, x, y, _) = it
             if (actor != null && actor.isACharacter) {
                 // actor!!
-                val dir=Vector2(x-selfCoords.x,y-selfCoords.y)
+                val dir = Vector2(x - selfCoords.x, y - selfCoords.y)
                 val (sx, sy) = mapToWindow(x, y)
                 val distance = (dir.len() / 100).toInt()
-                val angle=((dir.angle()+90)%360).toInt()
+                val angle = ((dir.angle() + 90) % 360).toInt()
                 val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
-                val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
-                val name= PlayerState.name
+                val PlayerState = actors[playerStateGUID] as? PlayerState ?: return@forEach
+                val name = PlayerState.name
                 val teamNumber = PlayerState.teamNumber
                 val numKills = PlayerState.numKills
                 val health = actorHealth[actor.netGUID] ?: 100f
                 val equippedWeapons = actorHasWeapons[actor.netGUID]
                 val df = DecimalFormat("###.#")
-                var weapon=""
-
+                var weapon = ""
                 val width = healthBarWidth * zoom
                 val height = healthBarHeight * zoom
                 val backgroundRadius = (playerRadius + 2000f) * zoom
@@ -1357,19 +1393,19 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     if (equippedWeapons != null) {
                         for (w in equippedWeapons) {
                             val a = weapons[w ?: continue] ?: continue
-                            val result=a.typeName.split("_")
-                            weapon+="<${result[2].substring(4)}>\n"
+                            val result = a.typeName.split("_")
+                            weapon += "${result[2].substring(4)}\n"
 
                         }
                     }
-                    var items=""
+                    var items = ""
                     for (element in PlayerState.equipableItems) {
                         if (element == null || element._1.isBlank()) continue
-                        items+="${element._1}->${element._2.toInt()}\n"
+                        items += "${element._1}->${element._2.toInt()}\n"
                     }
                     for (element in PlayerState.castableItems) {
                         if (element == null || element._1.isBlank()) continue
-                        items+="${element._1}->${element._2}\n"
+                        items += "${element._1}->${element._2}\n"
                     }
 
                     when (nameToggles) {
@@ -1380,10 +1416,11 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                             "|N: $name\n" +
                                             "|H: \n" +
                                             "|K: ($numKills)\nTN.($teamNumber)\n" +
-                                            "|W: $weapon\n" +
                                             "|S: \n" +
+                                            "|W: $weapon\n" +
                                             "|I: $items"
-                                                 ,sx + 20, windowHeight - sy + 20)
+
+                                    , sx + 20, windowHeight - sy + 20)
 
                             val healthText = health
                             when {
@@ -1393,14 +1430,14 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                             }
 
                             if (actor is Character)
-                                when  {
+                                when {
                                     actor.isGroggying -> {
-                                        hpred.draw(spriteBatch, "DOWNED", sx + 40, windowHeight - sy + -52)
+                                        hpred.draw(spriteBatch, "DOWNED", sx + 40, windowHeight - sy + -42)
                                     }
                                     actor.isReviving -> {
-                                        hporange.draw(spriteBatch, "GETTING REVIVED", sx + 40, windowHeight - sy + -52)
+                                        hporange.draw(spriteBatch, "GETTING REVIVED", sx + 40, windowHeight - sy + -42)
                                     }
-                                    else -> hpgreen.draw(spriteBatch, "Alive", sx + 40, windowHeight - sy + -52)
+                                    else -> hpgreen.draw(spriteBatch, "Alive", sx + 40, windowHeight - sy + -42)
                                 }
 
                         }
@@ -1427,13 +1464,22 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                             }
                             nameFont.draw(spriteBatch, "|N: $name\n|D: ${distance}m $angle°\n" +
                                     "|H:\n" +
+                                    "|S:\n" +
                                     "|W: $weapon",
                                     sx + 20, windowHeight - sy + 20)
 
+                            if (actor is Character)
+                                when {
+                                    actor.isGroggying -> {
+                                        hpred.draw(spriteBatch, "DOWNED", sx + 40, windowHeight - sy + -16)
+                                    }
+                                    actor.isReviving -> {
+                                        hporange.draw(spriteBatch, "GETTING REVIVED", sx + 40, windowHeight - sy + -16)
+                                    }
+                                    else -> hpgreen.draw(spriteBatch, "Alive", sx + 40, windowHeight - sy + -16)
+                                }
                         }
                     }
-
-                    //    nameFont.draw(spriteBatch, "$angle°${distance}m\n$name\n" + "H: ($${df.format(health)})\nK: ($numKills)\nTN.($teamNumber)\nW: $weapon", sx + 20, windowHeight - sy + 20)
 
                 }
             }
