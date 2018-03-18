@@ -629,20 +629,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             else
                 espFontShadow.draw(spriteBatch, "THROW", 200f, windowHeight - 25f)
 
-            if (drawmenu == 1)
-                espFont.draw(spriteBatch, "[F12] Menu ON", 270f, windowHeight - 25f)
-            else
-                espFontShadow.draw(spriteBatch, "[F12] Menu OFF", 270f, windowHeight - 25f)
-
-            val num = nameToggles
-            espFontShadow.draw(spriteBatch, "[F8] Player Info: $num", 270f, windowHeight - 42f)
-
-            val znum = ZoomToggles
-            espFontShadow.draw(spriteBatch, "[Num8] Zoom Toggle: $znum", 40f, windowHeight - 68f)
-
-            val vnum = VehicleInfoToggles
-            espFontShadow.draw(spriteBatch, "[F5] Vehicle Toggles: $vnum", 40f, windowHeight - 85f)
-
 
             val pinDistance = (pinLocation.cpy().sub(selfX, selfY).len() / 100).toInt()
             val (x, y) = rotatePosRespectToSelf(pinLocation).mapToWindow()
@@ -1033,7 +1019,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
                     if (VehicleInfoToggles < 3) {
 
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1059,7 +1045,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 SixSeatBoat -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1085,7 +1071,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 TwoSeatBike -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1111,7 +1097,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 TwoSeatCar -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1141,7 +1127,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 ThreeSeatCar -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1168,7 +1154,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 FourSeatDU -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1200,7 +1186,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 FourSeatP -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1231,7 +1217,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 }
                 SixSeatCar -> actorInfos?.forEach {
                     if (VehicleInfoToggles < 3) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1263,7 +1249,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 Player -> actorInfos?.forEach {
 
                     for ((_, _) in typeLocation) {
-                        val (actor, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
                         val playerStateGUID = actorWithPlayerState[actor!!.netGUID] ?: return@forEach
@@ -1273,12 +1259,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         if (teamNumber == 1) {
 
                             // Can't wait for the "Omg Players don't draw issues
-                            spriteBatch.draw(
-                                    teamarrow,
-                                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
-                                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
-                                    nDir * -1, 0, 0, 64, 64, true, false)
-
                             if (toggleView == 1) {
                                 spriteBatch.draw(
                                         teamsight,
@@ -1290,13 +1270,14 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                         nDir * -1, 0, 0, 512, 64, true, false)
                             }
 
-                        } else {
-
                             spriteBatch.draw(
-                                    arrow,
+                                    teamarrow,
                                     sx, windowHeight - sy - 2, 4.toFloat() / 2,
                                     4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
                                     nDir * -1, 0, 0, 64, 64, true, false)
+
+
+                        } else {
 
                             if (toggleView == 1) {
                                 spriteBatch.draw(
@@ -1308,6 +1289,13 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                         10f, 10f,
                                         nDir * -1, 0, 0, 512, 64, true, false)
                             }
+
+                            spriteBatch.draw(
+                                    arrow,
+                                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
+                                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
+                                    nDir * -1, 0, 0, 64, 64, true, false)
+
                         }
                     }
 
@@ -1315,7 +1303,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 Parachute -> actorInfos?.forEach {
                     for ((_, _) in typeLocation) {
 
-                        val (_, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1330,7 +1318,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 Plane -> actorInfos?.forEach {
                     for ((_, _) in typeLocation) {
 
-                        val (_, x, y, dir) = it
+                        val (actor, x, y, z, dir) = it
                         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
@@ -1343,7 +1331,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     }
                 }
                 Grenade -> actorInfos?.forEach {
-                    val (_, x, y, dir) = it
+                    val (actor, x, y, z, dir) = it
                     val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                     val nDir = rotateDirRespectToSelf(dir)
 
@@ -1368,27 +1356,27 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
             players?.forEach {
 
-            val zoom = camera.zoom
-            val (actor, x, y, z, _) = it
-            if (actor != null && actor.isACharacter) {
-                // actor!!
+                val zoom = camera.zoom
+                val (actor, x, y, z, _) = it
+                if (actor != null && actor.isACharacter) {
+                    // actor!!
 
-                val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
-                val dir = Vector2(x - selfCoords.x,y - selfCoords.y)
-                val distance = (dir.len() / 100).toInt()
-                val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
-                val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
-                val name= PlayerState.name
-                val teamNumber = PlayerState.teamNumber
-                val numKills = PlayerState.numKills
-                val angle = ((dir.angle() + 90) % 360).toInt()
-                val health = actorHealth[actor.netGUID] ?: 100f
-                val equippedWeapons = actorHasWeapons[actor.netGUID]
-                val df = DecimalFormat("###.#")
+                    val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
+                    val dir = Vector2(x - selfCoords.x, y - selfCoords.y)
+                    val distance = (dir.len() / 100).toInt()
+                    val playerStateGUID = actorWithPlayerState[actor.netGUID] ?: return@forEach
+                    val PlayerState = actors[playerStateGUID] as? PlayerState ?: return@forEach
+                    val name = PlayerState.name
+                    val teamNumber = PlayerState.teamNumber
+                    val numKills = PlayerState.numKills
+                    val angle = ((dir.angle() + 90) % 360).toInt()
+                    val health = actorHealth[actor.netGUID] ?: 100f
+                    val equippedWeapons = actorHasWeapons[actor.netGUID]
+                    val df = DecimalFormat("###.#")
 
 
-                val deltaHeight = (if (z > selfHeight) "+" else "-") + df.format(abs(z - selfHeight) / 100f)
-                var weapon: String? = ""
+                    val deltaHeight = (if (z > selfHeight) "+" else "-") + df.format(abs(z - selfHeight) / 100f)
+                    var weapon: String? = ""
 
                     if (equippedWeapons != null) {
                         for (w in equippedWeapons) {
@@ -1397,14 +1385,14 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                             weapon += " - " + result[2].substring(4) + "\n"
                         }
                     }
-                    var items=""
+                    var items = ""
                     for (element in PlayerState.equipableItems) {
                         if (element == null || element._1.isBlank()) continue
-                        items+="${element._1}->${element._2.toInt()}\n"
+                        items += "${element._1}->${element._2.toInt()}\n"
                     }
                     for (element in PlayerState.castableItems) {
                         if (element == null || element._1.isBlank()) continue
-                        items+="${element._1}->${element._2}\n"
+                        items += "${element._1}->${element._2}\n"
                     }
 
                     val drawName = nameToggles >= 1
@@ -1412,24 +1400,26 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     val drawHealth = nameToggles >= 3
                     val drawPVP = nameToggles >= 4
 
-                    if (drawHealth) {
-                        val healthText = health
-                        when {
-                            healthText > 66f -> hpgreen.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy )
-                            healthText > 33f -> hporange.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
-                            else -> hpred.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
-                        }
-                    }
 
-                if (actor is Character)
-                    when  {
-                        actor.isGroggying -> {
-                            hpred.draw(spriteBatch, "DOWNED", sx + 40, windowHeight - sy + -52)
+                    if (actor is Character) {
+                        when {
+                            actor.isGroggying -> {
+                                hpred.draw(spriteBatch, "DOWNED", sx + 20, windowHeight - sy)
+                            }
+                            actor.isReviving -> {
+                                hporange.draw(spriteBatch, "GETTING REVIVED", sx + 20, windowHeight - sy)
+                            }
+                            else -> {
+                                if (drawHealth) {
+                                    val healthText = health
+                                    when {
+                                        healthText > 66f -> hpgreen.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
+                                        healthText > 33f -> hporange.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
+                                        else -> hpred.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
+                                    }
+                                }
+                            }
                         }
-                        actor.isReviving -> {
-                            hporange.draw(spriteBatch, "GETTING REVIVED", sx + 40, windowHeight - sy + -52)
-                        }
-                        else -> hpgreen.draw(spriteBatch, "Alive", sx + 40, windowHeight - sy + -52)
                     }
                     nameFont.draw(spriteBatch,
                             (if (drawName) "$name\n" else "") +
