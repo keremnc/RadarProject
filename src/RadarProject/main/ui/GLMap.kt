@@ -70,15 +70,16 @@ import main.struct.cmd.PlayerStateCMD.selfStateID
 import main.struct.cmd.PlayerStateCMD.teamNumbers
 import main.struct.cmd.TeamCMD.team
 import main.struct.cmd.selfAttachTo
+import main.struct.cmd.selfHeight
 import main.struct.cmd.selfCoords
 import main.struct.cmd.selfDirection
-import main.util.tuple4
+import main.util.tuple5
 import java.text.DecimalFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
-typealias renderInfo = tuple4<Actor, Float, Float, Float>
+typealias renderInfo = tuple5<Actor, Float, Float, Float, Float>
 
 class GLMap : InputAdapter(), ApplicationListener, GameListener {
     companion object {
@@ -236,6 +237,11 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     fun Vector2.windowToMap() = windowToMap(x, y)
 
 
+    private fun resetDragged() {
+        screenOffsetX = 0f
+        screenOffsetY = 0f
+    }
+
     override fun scrolled(amount: Int): Boolean {
 
         if (camera.zoom >= 0.01f && camera.zoom <= 1f) {
@@ -243,11 +249,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         } else {
             if (camera.zoom < 0.01f) {
                 camera.zoom = 0.01f
-                println("Max Zoom")
             }
             if (camera.zoom > 1f) {
                 camera.zoom = 1f
-                println("Min Zoom")
             }
         }
 
@@ -257,7 +261,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         when (button) {
             RIGHT -> {
-                pinLocation.set(pinLocation.set(screenX.toFloat(), screenY.toFloat()).windowToMap())
+                pinLocation.set(rotatePos(Vector2(screenX.toFloat(), screenY.toFloat()).windowToMap(), -rotateDirRespectToSelf(0f)))
                 camera.update()
                 println(pinLocation)
                 return true
@@ -269,8 +273,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 return true
             }
             MIDDLE -> {
-                screenOffsetX = 0f
-                screenOffsetY = 0f
+                resetDragged()
             }
         }
         return false
@@ -280,6 +283,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         when (keycode) {
 
+            // reset drag
+            SPACE -> {
+                resetDragged()
+            }
 
         // Change Player Info
             F1 -> {
@@ -504,6 +511,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         selfAttachTo?.apply {
             selfCoords.set(location.x, location.y)
+            selfHeight = location.z
             selfDirection = rotation.y
         }
 
@@ -537,7 +545,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 val list = v ?: ArrayList()
                 val (centerX, centerY) = actor.location
                 val direction = actor.rotation.y
-                list.add(tuple4(actor, centerX, centerY, direction))
+                list.add(tuple5(actor, centerX, centerY, actor.location.z, direction))
                 list
             }
 
@@ -619,7 +627,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 espFontShadow.draw(spriteBatch, "THROW", 200f, windowHeight - 25f)
 
             val pinDistance = (pinLocation.cpy().sub(selfX, selfY).len() / 100).toInt()
-            val (x, y) = pinLocation.mapToWindow()
+            val (x, y) = rotatePosRespectToSelf(pinLocation).mapToWindow()
 
             safeZoneHint()
             drawPlayerNames(typeLocation[Player], selfX, selfY)
@@ -838,7 +846,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         }
                     }
 
-            drawMyself(tuple4(null, selfX, selfY, selfDirection))
+            drawMyself(tuple5(null, selfX, selfY, selfHeight, selfDirection))
             drawPawns(typeLocation)
 
         }
@@ -865,7 +873,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             circle(selfCoords, visionRadius, 100)
 
             color = pinColor
-            circle(pinLocation, pinRadius * zoom, 10)
+            circle(rotatePosRespectToSelf(pinLocation), pinRadius * zoom, 10)
 
         }
         drawAttackLine(currentTime)
@@ -876,9 +884,13 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private fun rotatePosRespectToSelf(absolute: Vector2): Vector2 {
         if (mapRotation != 1) return absolute
 
+        return rotatePos(absolute, rotateDirRespectToSelf(0f))
+    }
+
+
+    private fun rotatePos(absolute: Vector2, dir: Float): Vector2 {
         val (x, y) = absolute.cpy().sub(selfCoords)
 
-        val dir = rotateDirRespectToSelf(0f)
         val dirRad = Math.toRadians(dir.toDouble()).toFloat()
 
         val diff = Vector2((x * cos(dirRad)) - (y * sin(dirRad)), ((x * sin(dirRad)) + (y * cos(dirRad))))
@@ -887,6 +899,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         return selfCoords.cpy().add(diff)
     }
 
+
     private fun rotateDirRespectToSelf(dir: Float): Float {
         if (mapRotation != 1) return dir
 
@@ -894,7 +907,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     }
 
     private fun drawMyself(actorInfo: renderInfo) {
-        val (actor, x, y, dir) = actorInfo
+        val (actor, x, y, z, dir) = actorInfo
         if (actor?.netGUID == selfID) return
 
         val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
@@ -903,12 +916,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         if (toggleView == 1) {
             // Just draw them both at the same time to avoid player not drawing ¯\_(ツ)_/¯
             spriteBatch.draw(
-                    player,
-                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
-                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
-                    sDir * -1, 0, 0, 64, 64, true, false)
-
-            spriteBatch.draw(
                     playersight,
                     sx + 1, windowHeight - sy - 2,
                     2.toFloat() / 2,
@@ -916,14 +923,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     12.toFloat(), 2.toFloat(),
                     10f, 10f,
                     sDir * -1, 0, 0, 512, 64, true, false)
-        } else {
-
+        }
             spriteBatch.draw(
                     player,
                     sx, windowHeight - sy - 2, 4.toFloat() / 2,
                     4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
                     sDir * -1, 0, 0, 64, 64, true, false)
-        }
     }
 
 
@@ -1241,22 +1246,16 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
                     for ((_, _) in typeLocation) {
                         val (actor, x, y, dir) = it
-                        val (nx, ny) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
+                        val (sx, sy) = rotatePosRespectToSelf(Vector2(x, y)).mapToWindow()
                         val nDir = rotateDirRespectToSelf(dir)
 
                         if (isTeamMate(actor)) {
 
                             // Can't wait for the "Omg Players don't draw issues
-                            spriteBatch.draw(
-                                    player,
-                                    nx, windowHeight - ny - 2, 4.toFloat() / 2,
-                                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
-                                    nDir * -1, 0, 0, 64, 64, true, false)
-
                             if (toggleView == 1) {
                                 spriteBatch.draw(
                                         playersight,
-                                        nx + 1, windowHeight - ny - 2,
+                                        sx + 1, windowHeight - sy - 2,
                                         2.toFloat() / 2,
                                         2.toFloat() / 2,
                                         12.toFloat(), 2.toFloat(),
@@ -1264,24 +1263,31 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                                         nDir * -1, 0, 0, 512, 64, true, false)
                             }
 
-                        } else {
-
                             spriteBatch.draw(
-                                    arrow,
-                                    nx, windowHeight - ny - 2, 4.toFloat() / 2,
+                                    player,
+                                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
                                     4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
                                     nDir * -1, 0, 0, 64, 64, true, false)
+
+                        } else {
 
                             if (toggleView == 1) {
                                 spriteBatch.draw(
                                         arrowsight,
-                                        nx + 1, windowHeight - ny - 2,
+                                        sx + 1, windowHeight - sy - 2,
                                         2.toFloat() / 2,
                                         2.toFloat() / 2,
                                         12.toFloat(), 2.toFloat(),
                                         10f, 10f,
                                         nDir * -1, 0, 0, 512, 64, true, false)
                             }
+
+                            spriteBatch.draw(
+                                    arrow,
+                                    sx, windowHeight - sy - 2, 4.toFloat() / 2,
+                                    4.toFloat() / 2, 4.toFloat(), 4.toFloat(), 5f, 5f,
+                                    nDir * -1, 0, 0, 64, 64, true, false)
+
                         }
                     }
 
@@ -1342,7 +1348,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             players?.forEach {
 
                 val zoom = camera.zoom
-                val (actor, x, y, _) = it
+                val (actor, x, y, z, _) = it
                 if (actor != null && actor.isACharacter) {
                     // actor!!
 
@@ -1355,7 +1361,10 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     val angle = ((dir.angle() + 90) % 360).toInt()
                     val health = actorHealth[actor.netGUID] ?: 100f
                     val equippedWeapons = actorHasWeapons[actor.netGUID]
-                    val df = DecimalFormat("###.#'%'")
+
+                    val df = DecimalFormat("###.#")
+
+                    val deltaHeight = (if (z > selfHeight) "+" else "-") + df.format(abs(z - selfHeight) / 100f)
                     var weapon: String? = ""
 
                     if (equippedWeapons != null) {
@@ -1374,15 +1383,15 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     if (drawHealth) {
                         val healthText = health
                         when {
-                            healthText > 66f -> hpgreen.draw(spriteBatch, "\n${df.format(health)}", sx + 20, windowHeight - sy )
-                            healthText > 33f -> hporange.draw(spriteBatch, "\n${df.format(health)}", sx + 20, windowHeight - sy)
-                            else -> hpred.draw(spriteBatch, "\n${df.format(health)}", sx + 20, windowHeight - sy)
+                            healthText > 66f -> hpgreen.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy )
+                            healthText > 33f -> hporange.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
+                            else -> hpred.draw(spriteBatch, "\n${df.format(health)}%", sx + 20, windowHeight - sy)
                         }
                     }
 
                     nameFont.draw(spriteBatch,
                             (if (drawName) "$name\n" else "") +
-                                    (if (drawPos) "$angle°\n${distance}m\n" else "") +
+                                    (if (drawPos) "$angle°\n${distance}m | ${deltaHeight}m\n" else "") +
                                     (if (drawHealth) "\n" else "") +
                                     (if (drawPVP) "$numKills Kills\n$weapon" else ""),
                             sx + 20, windowHeight - sy + 30)

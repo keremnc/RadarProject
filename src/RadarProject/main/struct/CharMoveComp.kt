@@ -51,6 +51,8 @@ fun CharacterMoveComp(bunch: Bunch, client: Boolean = false) {
       if (rpcPayload.readBit()) {
         val clientLoc = rpcPayload.readVector(100, 30)
         selfCoords.set(clientLoc.x, clientLoc.y)
+        selfHeight = clientLoc.z
+
       }
       if (rpcPayload.readBit()) {
         val compressedMoveFlags = rpcPayload.readUInt8()
@@ -87,6 +89,7 @@ fun CharacterMoveComp(bunch: Bunch, client: Boolean = false) {
       if (rpcPayload.readBit()) {
         val clientLoc = rpcPayload.readVector(100, 30)
         selfCoords.set(clientLoc.x, clientLoc.y)
+        selfHeight = clientLoc.z
       }
       if (rpcPayload.readBit()) {
         val compressedMoveFlags = rpcPayload.readUInt8()

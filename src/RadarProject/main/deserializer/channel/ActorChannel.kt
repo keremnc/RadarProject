@@ -107,7 +107,6 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
 
                         if (classObj != null && (actor.Type == DroopedItemGroup || actor.Type == DroppedItem || actor.Type == AirDrop)) {
                             val sn = Item.isGood(classObj.pathName)
-                            println("airdrop Items: $itemBag")
                             if (sn != null)
                                 droppedItemLocation[netguid] = tuple2(Vector2(actor.location.x, actor.location.y), sn)
                         }
