@@ -214,7 +214,7 @@
                         <configuration>
                             <headerType>console</headerType>
                             <jar>target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</jar>
-                            <outfile>target/${project.artifactId}.${buildNumber}.exe</outfile>
+                            <outfile>archive/${project.artifactId}.${buildNumber}.exe</outfile>
                             <icon>src/RadarProject/resources/icons/application.ico</icon>
                             <supportUrl>https://github.com/Jerry1211/RadarProject</supportUrl>
                             <classPath>
