@@ -41,12 +41,12 @@ You can't filter level 3 gear (always enabled)
 https://youtu.be/H_gud8xuP-s
 
 ### Online Mode:
-`java -jar target\pubg-radar-1.0-SNAPSHOT-jar-with-dependencies.jar "Middle PC IP" PortFilter "Game PC IP"`
+`java -jar target\RadarProject-Jerry1211-FORK-jar-with-dependencies.jar "Middle PC IP" PortFilter "Game PC IP"`
 
 ### Offline Mode:
 You can replay a PCAP file in offline mode:
 
-`java -jar target\pubg-radar-1.0-SNAPSHOT-jar-with-dependencies.jar "Middle PC IP" PortFilter "Game PC IP" Offline`
+`java -jar target\RadarProject-Jerry1211-FORK-jar-with-dependencies.jar "Middle PC IP" PortFilter "Game PC IP" Offline`
 
 
 ## Build
