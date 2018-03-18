@@ -6,6 +6,18 @@
     <groupId>main</groupId>
     <artifactId>RadarProject</artifactId>
     <version>Jerry1211-FORK</version>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
     <properties>
         <libGdx.version>1.9.6</libGdx.version>
         <commons.math.version>3.6.1</commons.math.version>
@@ -24,6 +36,17 @@
         <buildNumber>${maven.build.timestamp}</buildNumber>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.squareup.moshi</groupId>
+            <artifactId>moshi</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.moshi</groupId>
+            <artifactId>moshi-kotlin</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
