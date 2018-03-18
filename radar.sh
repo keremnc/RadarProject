@@ -23,10 +23,28 @@ if [ -d ".git" ]; then
     fi
 fi
 
+
 #Set java path's for the root user
 export JAVA_HOME="/opt/jdk"
 export PATH="$PATH:$JAVA_HOME/bin"
 
+#Check if java is found
+if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ];  then
+    echo "Found java executable in JAVA_HOME"
+else
+    echo "Could not find java :("
+    exit 1
+fi
+
+#List openvpn bound ip's on this server:
+server_bound_ips=$(ifconfig -a | grep -A 1 as0t | grep -o -E 'addr:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+
+echo "The script found the following openvpn bound IP adresses:"
+for ip in $server_bound_ips
+do
+    ip=$(echo $ip | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+    echo "\t$ip"
+done
 
 #This is the openvpn ip of your server
 echo "This PC's IP (172.27.XXX.1 [openvpn]):"
