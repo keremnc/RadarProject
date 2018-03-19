@@ -1,7 +1,5 @@
 target/
 .idea
 logall.txt
-archive/*.exe
-*.pcap
 
 settings\.json
