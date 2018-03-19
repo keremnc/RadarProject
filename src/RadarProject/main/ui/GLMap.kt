@@ -286,11 +286,11 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         // Change Player Info
             F1 -> {
-                if (nameToggles < 6) {
+                if (nameToggles < 5) {
                     nameToggles += 1
                 }
-                if (nameToggles == 6) {
-                    nameToggles = 1
+                if (nameToggles == 5) {
+                    nameToggles = 0
                 }
             }
 
@@ -1536,6 +1536,8 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     }
 
                     when (nameToggles) {
+                        0 ->
+                        {}
 
                         1 -> {
                             nameFont.draw(spriteBatch,
