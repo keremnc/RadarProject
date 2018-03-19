@@ -130,7 +130,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     lateinit var mapErangel: Texture
     lateinit var mapMiramar: Texture
     private lateinit var DaMap: Texture
-    private lateinit var iconImages: Icons
     private lateinit var corpseboximage: Texture
     private lateinit var AirDropAllTheColors: Texture
     private lateinit var bgcompass: Texture
@@ -462,7 +461,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         vano = Texture(Gdx.files.internal("images/vano.png"))
 
         grenade = Texture(Gdx.files.internal("images/grenade.png"))
-        iconImages = Icons(Texture(Gdx.files.internal("images/item-sprites.png")), 64)
         var cur = 0
 
 
@@ -997,13 +995,13 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 items.forEach {
                     if (items in Crateitems) {
                         hpgreen.draw(spriteBatch, "$items", x - staticItemScale, y - staticItemScale)
-                        draw(icon, sx, syFix, itemScale, itemScale)
+                        draw(icon, sx - itemScale / 2, syFix - itemScale / 2, itemScale, itemScale)
                     }
                     if ((items !in weaponsToFilter && items !in scopesToFilter && items !in attachToFilter && items !in level2Filter
                                     && items !in level3Filter && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
                             && camera.zoom < 0.0833f && sx > 0 && sx < windowWidth && syFix > 0 && syFix < windowHeight) {
 
-                        draw(icon, sx, syFix, itemScale, itemScale)
+                        draw(icon, sx - itemScale / 2, syFix - itemScale / 2, itemScale, itemScale)
                     }
                 }
             }
@@ -1695,7 +1693,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         corpseboximage.dispose()
         AirDropAllTheColors.dispose()
         vehicle.dispose()
-        iconImages.iconSheet.dispose()
         compaseFont.dispose()
         compaseFontShadow.dispose()
 
