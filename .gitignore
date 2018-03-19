@@ -3,3 +3,5 @@ target/
 logall.txt
 archive/*.exe
 *.pcap
+
+settings\.json
