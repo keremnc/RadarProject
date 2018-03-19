@@ -615,11 +615,11 @@ class GLMap( val jsonsettings: Settings.jsonsettings) : InputAdapter(), Applicat
 
                 layout.setText(hubFont, zero)
                 spriteBatch.draw(hubpanel, windowWidth - 390f, windowHeight - 60f)
-                hubFontShadow_color.draw(spriteBatch, "KILLS", windowWidth - 345f, windowHeight - 29f)
+                hubFontShadow.draw(spriteBatch, "KILLS", windowWidth - 345f, windowHeight - 29f)
                 hubFont.draw(spriteBatch, "$zero", windowWidth - 370f - layout.width / 2, windowHeight - 29f)
             } else {
                 spriteBatch.draw(hubpanel, windowWidth - 390f + 130f, windowHeight - 60f)
-                hubFontShadow_color.draw(spriteBatch, "KILLS", windowWidth - 345f + 128f, windowHeight - 29f)
+                hubFontShadow.draw(spriteBatch, "KILLS", windowWidth - 345f + 128f, windowHeight - 29f)
                 hubFont.draw(spriteBatch, "$zero", windowWidth - 370f + 128f - layout.width / 2, windowHeight - 29f)
 
             }
