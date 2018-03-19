@@ -458,15 +458,12 @@ class GLMap( val jsonsettings: Settings.jsonsettings) : InputAdapter(), Applicat
         espFontShadow = generatorHub.generateFont(paramHub)
 
         //Scarjit [19.03.2018] Is this part actually doing anything ?
-        //Overwritten by GOTHICB
-        /*
         val generatorNumber = FreeTypeFontGenerator(Gdx.files.internal("font/NUMBER.TTF"))
         val paramNumber = FreeTypeFontParameter()
         paramNumber.characters = DEFAULT_CHARS
         paramNumber.size = jsonsettings.largeFont_size
         paramNumber.color = jsonsettings.largeFont_color
         largeFont = generatorNumber.generateFont(paramNumber)
-        */
 
         val generator = FreeTypeFontGenerator(Gdx.files.internal("font/GOTHICB.TTF"))
         val param = FreeTypeFontParameter()
@@ -476,12 +473,9 @@ class GLMap( val jsonsettings: Settings.jsonsettings) : InputAdapter(), Applicat
         largeFont = generator.generateFont(param)
 
         //Scarjit [19.03.2018] Is this part actually doing anything ?
-        //-> Duplicate code
-        /*
         param.size = jsonsettings.littleFont_size
         param.color = jsonsettings.littleFont_color
         littleFont = generator.generateFont(param)
-        */
 
         param.size = jsonsettings.nameFont_size
         param.color = jsonsettings.nameFont_color
