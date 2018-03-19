@@ -939,7 +939,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         level2Filter = if (filterLvl2 != 1) {
             arrayListOf("")
         } else {
-<<<<<<< HEAD
+
             arrayListOf(
                     "Item_Armor_D_01_Lv2_C",
                     "Item_Armor_C_01_Lv3_C",
@@ -963,15 +963,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                 "Item_Weapon_Groza",
                 "Item_Weapon_AWM")
 
-=======
-            arrayListOf("Bag2", "Armor2", "Helmet2","Bag3", "Armor3", "Helmet3")
-        }
-//        level3Filter = if (filterLvl3 != 1) {
-//            arrayListOf("")
-//        } else {
-//            arrayListOf("Bag3", "Armor3", "Helmet3")
-//        }
->>>>>>> 65f703fcc405ef77186ac564802b21ca6a9032ca
+
         paint(itemCamera.combined) {
             //Draw Corpse Icon
             corpseLocation.values.forEach {
