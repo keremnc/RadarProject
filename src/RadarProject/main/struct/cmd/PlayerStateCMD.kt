@@ -1,6 +1,7 @@
 @file:Suppress("NAME_SHADOWING")
 package main.struct.cmd
 
+import Item.Companion.simplify
 import main.GameListener
 import main.deserializer.ROLE_MAX
 import main.register
@@ -11,7 +12,6 @@ import main.struct.NetworkGUID
 import main.struct.*
 import main.util.tuple2
 import java.util.concurrent.ConcurrentHashMap
-import main.struct.Item.Companion.simplify
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object PlayerStateCMD : GameListener {
@@ -125,9 +125,9 @@ object PlayerStateCMD : GameListener {
                     val element=actor.castableItems[arrayIdx] ?: tuple2("",0)
                     when (structIdx) {
                         0 -> {
-                            val (guid,castableItemClass)=readObject()
+                            val (guid,castableItemClass) = readObject()
                             if (castableItemClass != null)
-                                element._1=simplify(castableItemClass.pathName)
+                                element._1 = simplify(castableItemClass.pathName)
                         }
                         1 -> {
                             val ItemType=readInt(8)

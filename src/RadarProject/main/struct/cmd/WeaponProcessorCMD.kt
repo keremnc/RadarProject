@@ -3,7 +3,7 @@ package main.struct.cmd
 
 import main.deserializer.channel.ActorChannel.Companion.actorHasWeapons
 import main.struct.*
-import main.util.DynamicArray
+import pubgradar.util.DynamicArray
 
 object WeaponProcessorReplicator {
     fun process(actor:Actor,bunch:Bunch,repObj:NetGuidCacheObject?,waitingHandle:Int,data:HashMap<String,Any?>):Boolean {

@@ -3,11 +3,7 @@
 package main.ui
 
 
-import com.badlogic.gdx.graphics.Color.*
-import com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D
-import com.badlogic.gdx.graphics.Texture.TextureFilter.*
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER
+import Item.Companion.order
 import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input.Buttons.LEFT
@@ -19,12 +15,17 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Color.*
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.Texture.TextureFilter.Linear
+import com.badlogic.gdx.graphics.Texture.TextureFilter.MipMap
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.DEFAULT_CHARS
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
@@ -43,11 +44,9 @@ import main.deserializer.channel.ActorChannel.Companion.corpseLocation
 import main.deserializer.channel.ActorChannel.Companion.droppedItemLocation
 import main.deserializer.channel.ActorChannel.Companion.visualActors
 import main.deserializer.channel.ActorChannel.Companion.weapons
-import main.struct.Actor
-import main.struct.Archetype
+import main.struct.*
 import main.struct.Archetype.*
-import main.struct.Character
-import main.struct.NetworkGUID
+import main.struct.PlayerState
 import main.struct.cmd.ActorCMD.actorHealth
 import main.struct.cmd.ActorCMD.actorWithPlayerState
 import main.struct.cmd.ActorCMD.playerStateToActor
@@ -65,17 +64,20 @@ import main.struct.cmd.GameStateCMD.TotalWarningDuration
 import main.struct.cmd.PlayerStateCMD.attacks
 import main.struct.cmd.PlayerStateCMD.selfID
 import main.struct.cmd.PlayerStateCMD.selfStateID
-import main.struct.PlayerState
 import main.struct.cmd.TeamReplicator.team
 import main.struct.cmd.selfAttachTo
 import main.struct.cmd.selfCoords
 import main.struct.cmd.selfDirection
 import main.util.tuple4
+import org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR
+import org.lwjgl.opengl.GL11.glTexParameterfv
+import org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER
 import java.text.DecimalFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.pow
 
+val itemIcons = HashMap<String, TextureAtlas.AtlasRegion>()
 typealias renderInfo = tuple4<Actor, Float, Float, Float>
 
 class GLMap : InputAdapter(), ApplicationListener, GameListener {
@@ -121,7 +123,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
     }
 
-
+    lateinit var itemAtlas: TextureAtlas
     private lateinit var spriteBatch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     lateinit var mapErangel: Texture
@@ -203,8 +205,8 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     private var drawcompass = -1
     private var drawmenu = 1
     private var toggleView = -1
-   // private var toggleVehicles = -1
-  //  private var toggleVNames = -1
+    // private var toggleVehicles = -1
+    //  private var toggleVNames = -1
     private var drawgrid = -1
     private var nameToggles = 4
     private var VehicleInfoToggles = 1
@@ -284,24 +286,42 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         // Change Player Info
             F1 -> {
-                if (nameToggles < 6) {nameToggles += 1}
-                if (nameToggles == 6) {nameToggles = 1}
+                if (nameToggles < 6) {
+                    nameToggles += 1
+                }
+                if (nameToggles == 6) {
+                    nameToggles = 1
+                }
             }
 
             F5 -> {
-                if (VehicleInfoToggles <= 4) {VehicleInfoToggles += 1}
-                if (VehicleInfoToggles == 4) {VehicleInfoToggles = 1}
+                if (VehicleInfoToggles <= 4) {
+                    VehicleInfoToggles += 1
+                }
+                if (VehicleInfoToggles == 4) {
+                    VehicleInfoToggles = 1
+                }
             }
         // Zoom (Loot, Combat, Scout)
             NUMPAD_8 -> {
-                if (ZoomToggles <= 4) { ZoomToggles += 1}
-                if (ZoomToggles == 4) { ZoomToggles = 1}
+                if (ZoomToggles <= 4) {
+                    ZoomToggles += 1
+                }
+                if (ZoomToggles == 4) {
+                    ZoomToggles = 1
+                }
                 // then
-                if (ZoomToggles == 1) {camera.zoom = 1 / 8f}
+                if (ZoomToggles == 1) {
+                    camera.zoom = 1 / 8f
+                }
                 // or
-                if (ZoomToggles == 2) {camera.zoom = 1 / 12f}
+                if (ZoomToggles == 2) {
+                    camera.zoom = 1 / 12f
+                }
                 // or
-                if (ZoomToggles == 3) {camera.zoom = 1 / 24f}
+                if (ZoomToggles == 3) {
+                    camera.zoom = 1 / 24f
+                }
             }
         // Other Filter Keybinds
             F2 -> drawcompass = drawcompass * -1
@@ -325,35 +345,35 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         // Level 2 & 3 Toggle
 
-             /*   F6 -> {
-                    if (filterArmorBag <= 4) {
-                        filterArmorBag += 1
-                    }
-                    if (filterArmorBag == 4) {
-                        filterArmorBag = 1
-                    }
-                    // then
-                    if (filterArmorBag == 1) {
-                        filterLvl3 = 1
-                    }
-                    // or
-                    if (filterArmorBag == 2) {
-                        filterLvl2 = 1
-                    }
-                    // or
-                    if (filterArmorBag == 3) {
-                        //both?
-                        filterLvl2 = 1
-                    if (filterArmorBag == 3) {
-                        filterLvl3 = 1
-                    }
-                    }
-                }
+        /*   F6 -> {
+               if (filterArmorBag <= 4) {
+                   filterArmorBag += 1
+               }
+               if (filterArmorBag == 4) {
+                   filterArmorBag = 1
+               }
+               // then
+               if (filterArmorBag == 1) {
+                   filterLvl3 = 1
+               }
+               // or
+               if (filterArmorBag == 2) {
+                   filterLvl2 = 1
+               }
+               // or
+               if (filterArmorBag == 3) {
+                   //both?
+                   filterLvl2 = 1
+               if (filterArmorBag == 3) {
+                   filterLvl3 = 1
+               }
+               }
+           }
 */
         // Zoom In/Out || Overrides Max/Min Zoom
             MINUS -> camera.zoom = camera.zoom + 0.00525f
             PLUS -> camera.zoom = camera.zoom - 0.00525f
-            // lol
+        // lol
         }
         return false
     }
@@ -393,6 +413,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         itemCamera = OrthographicCamera(initialWindowWidth, initialWindowWidth)
         fontCamera = OrthographicCamera(initialWindowWidth, initialWindowWidth)
+
+        itemAtlas = TextureAtlas(Gdx.files.internal("icons/itemIcons.txt"))
+        for (region in itemAtlas.regions)
+            itemIcons[region.name] = region.apply { flip(false, false) }
+
+
         alarmSound = Gdx.audio.newSound(Gdx.files.internal("sounds/Alarm.wav"))
         hubpanel = Texture(Gdx.files.internal("images/hub_panel.png"))
         bgcompass = Texture(Gdx.files.internal("images/bg_compass.png"))
@@ -546,9 +572,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         paint(camera.combined) {
 
-                    draw(DaMap, 0f, 0f, mapWidth, mapWidth,
-                            0, 0, DaMap.width, DaMap.height,
-                            false, true)
+            draw(DaMap, 0f, 0f, mapWidth, mapWidth,
+                    0, 0, DaMap.width, DaMap.height,
+                    false, true)
 
         }
 
@@ -568,7 +594,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             }
 
 
-       // val zero = numKills.toString()
+        // val zero = numKills.toString()
         paint(fontCamera.combined) {
 
             // NUMBER PANEL
@@ -658,7 +684,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             val vnum = VehicleInfoToggles
             espFontShadow.draw(spriteBatch, "[F5] Vehicle Toggles: $vnum", 40f, windowHeight - 85f)
 
-           // val mnum = filterArmorBag
+            // val mnum = filterArmorBag
             //           //espFontShadow.draw(spriteBatch, "[F6] Item Armor Toggle: $mnum", 35f, windowHeight - 115f)
 
             val pinDistance = (pinLocation.cpy().sub(selfX, selfY).len() / 100).toInt()
@@ -805,47 +831,139 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         }
 
 
-        // This makes the array empty if the filter is off for performance with an inverted function since arrays are expensive
         scopesToFilter = if (filterScope != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("DotSight", "Aimpoint", "Holosight", "CQBSS", "ACOG")
+            arrayListOf(
+                    "Item_Attach_Weapon_Upper_Holosight_C",
+                    "Item_Attach_Weapon_Upper_DotSight_01_C",
+                    "Item_Attach_Weapon_Upper_Aimpoint_C",
+                    "Item_Attach_Weapon_Upper_CQBSS_C",
+                    "Item_Attach_Weapon_Upper_ACOG_01_C")
         }
 
 
         attachToFilter = if (filterAttach != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("AR.Stock", "S.Loops", "CheekPad", "A.Grip", "V.Grip", "U.Ext", "AR.Ext", "S.Ext", "U.ExtQ", "AR.ExtQ", "S.ExtQ", "Choke", "AR.Comp", "FH", "U.Supp", "AR.Supp", "S.Supp")
+            arrayListOf(
+                    "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_SniperRifle_C",
+                    "Item_Attach_Weapon_Magazine_Extended_SniperRifle_C",
+                    "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_Large_C",
+                    "Item_Attach_Weapon_Magazine_Extended_Large_C",
+                    "Item_Attach_Weapon_Stock_SniperRifle_CheekPad_C",
+                    "Item_Attach_Weapon_Stock_SniperRifle_BulletLoops_C",
+                    "Item_Attach_Weapon_Stock_AR_Composite_C",
+                    "Item_Attach_Weapon_Muzzle_Suppressor_SniperRifle_C",
+                    "Item_Attach_Weapon_Muzzle_Suppressor_Large_C",
+                    "Item_Attach_Weapon_Muzzle_Suppressor_Medium_C",
+                    "Item_Attach_Weapon_Muzzle_FlashHider_Medium_C",
+                    "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_Medium_C",
+                    "Item_Attach_Weapon_Magazine_Extended_Medium_C",
+                    "Item_Attach_Weapon_Muzzle_FlashHider_Large_C",
+                    "Item_Attach_Weapon_Muzzle_Compensator_Medium_C",
+                    "Item_Attach_Weapon_Lower_Foregrip_C",
+                    "Item_Attach_Weapon_Lower_AngledForeGrip_C")
         }
 
         weaponsToFilter = if (filterWeapon != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("M16A4", "HK416", "Kar98k", "SCAR-L", "AUG", "M249", "AWM", "Groza", "M24", "MK14", "Mini14", "DP28", "UMP", "Vector", "UZI", "Pan")
+            arrayListOf(
+                    "Item_Weapon_AWM_C",
+                    "Item_Weapon_M24_C",
+                    "Item_Weapon_Kar98k_C",
+                    "Item_Weapon_AUG_C",
+                    "Item_Weapon_M249_C",
+                    "Item_Weapon_Mk14_C",
+                    "Item_Weapon_Groza_C",
+                    "Item_Weapon_HK416_C",
+                    "Item_Weapon_SCAR-L_C",
+                    "Item_Weapon_Mini14_C",
+                    "Item_Weapon_M16A4_C",
+                    "Item_Weapon_SKS_C",
+                    "Item_Weapon_AK47_C",
+                    "Item_Weapon_DP28_C",
+                    "Item_Weapon_Saiga12_C",
+                    "Item_Weapon_UMP_C",
+                    "Item_Weapon_Vector_C",
+                    "Item_Weapon_UZI_C",
+                    "Item_Weapon_VSS_C",
+                    "Item_Weapon_Thompson_C",
+                    "Item_Weapon_Berreta686_C",
+                    "Item_Weapon_Winchester_C",
+                    "Item_Weapon_Win94_C",
+                    "Item_Weapon_G18_C",
+                    "Item_Weapon_SawenOff_C",
+                    "Item_Weapon_Rhino_C",
+                    "Item_Weapon_M1911_C",
+                    "Item_Weapon_NagantM1895_C",
+                    "Item_Weapon_M9_C")
         }
 
         healsToFilter = if (filterHeals != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("Bandage", "FirstAid", "MedKit", "Drink", "Pain", "Syringe")
+            arrayListOf(
+                    "Item_Heal_Bandage_C",
+                    "Item_Heal_MedKit_C",
+                    "Item_Heal_FirstAid_C",
+                    "Item_Boost_PainKiller_C",
+                    "Item_Boost_EnergyDrink_C",
+                    "Item_Boost_AdrenalineSyringe_C")
         }
 
         ammoToFilter = if (filterAmmo != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("9mm", "45mm", "556mm", "762mm", "300mm")
+            arrayListOf(
+                    "Item_Ammo_762mm_C",
+                    "Item_Ammo_556mm_C",
+                    "Item_Ammo_300Magnum_C",
+                    "Item_Weapon_Pan_C",
+                    "Item_Ammo_9mm_C",
+                    "Item_Ammo_45ACP_C",
+                    "Item_Ammo_12Guage_C")
         }
 
         throwToFilter = if (filterThrow != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("Grenade", "FlashBang", "SmokeBomb", "Molotov")
+            arrayListOf(
+                    "Item_Weapon_Grenade_C",
+                    "Item_Weapon_FlashBang_C",
+                    "Item_Weapon_SmokeBomb_C",
+                    "Item_Weapon_Molotov_C")
         }
 
         level2Filter = if (filterLvl2 != 1) {
             arrayListOf("")
         } else {
+<<<<<<< HEAD
+            arrayListOf(
+                    "Item_Armor_D_01_Lv2_C",
+                    "Item_Armor_C_01_Lv3_C",
+                    "Item_Head_G_01_Lv3_C",
+                    "Item_Head_F_02_Lv2_C",
+                    "Item_Head_F_01_Lv2_C",
+                    "Item_Back_C_02_Lv3_C",
+                    "Item_Back_C_01_Lv3_C",
+                    "Item_Back_F_01_Lv2_C",
+                    "Item_Back_F_02_Lv2_C",
+                    "Item_Back_E_01_Lv1_C",
+                    "Item_Armor_E_01_Lv1_C",
+                    "Item_Head_E_01_Lv1_C",
+                    "Item_Back_E_02_Lv1_C",
+                    "Item_Head_E_02_Lv1_C")
+        }
+
+        val Crateitems = arrayListOf("Item_Weapon_AUG",
+                "Item_Weapon_M24",
+                "Item_Weapon_M249",
+                "Item_Weapon_Groza",
+                "Item_Weapon_AWM")
+
+=======
             arrayListOf("Bag2", "Armor2", "Helmet2","Bag3", "Armor3", "Helmet3")
         }
 //        level3Filter = if (filterLvl3 != 1) {
@@ -853,6 +971,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 //        } else {
 //            arrayListOf("Bag3", "Armor3", "Helmet3")
 //        }
+>>>>>>> 65f703fcc405ef77186ac564802b21ca6a9032ca
         paint(itemCamera.combined) {
             //Draw Corpse Icon
             corpseLocation.values.forEach {
@@ -876,28 +995,33 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         false, true)
             }
 
-        val iconScale = 2f / camera.zoom
+            val iconScale = 2f / camera.zoom
 
-            droppedItemLocation.values
-                    .forEach {
-                        val (x, y) = it._1
-                        val items = it._2
-                        val (sx, sy) = Vector2(x, y).mapToWindow()
-                        val syFix = windowHeight - sy
+            val sorted = ArrayList(droppedItemLocation.values)
+            sorted.sortBy {
+                order[it._2]
+            }
+            sorted.forEach {
+                val (x, y) = it._1
+                val items = it._2
+                val icon = itemIcons[items]
+                val (sx, sy) = Vector2(x, y).mapToWindow()
+                val syFix = windowHeight - sy
 //                        println("Items: ${it}")
 
-                        items.forEach {
-                            if ((items !in weaponsToFilter && items !in scopesToFilter && items !in attachToFilter && items !in level2Filter
-                                            && items !in level3Filter && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
-                                    && iconScale > 20 && sx > 0 && sx < windowWidth && syFix > 0 && syFix < windowHeight) {
-                                iconImages.setIcon(items)
-
-                                draw(iconImages.icon,
-                                        sx - iconScale / 2, syFix - iconScale / 2,
-                                        iconScale, iconScale)
-                            }
-                        }
+                items.forEach {
+                    if (items in Crateitems) {
+                        hpgreen.draw(spriteBatch, "$items", x - staticItemScale, y - staticItemScale)
+                        draw(icon, sx, syFix, itemScale, itemScale)
                     }
+                    if ((items !in weaponsToFilter && items !in scopesToFilter && items !in attachToFilter && items !in level2Filter
+                                    && items !in level3Filter && items !in ammoToFilter && items !in healsToFilter) && items !in throwToFilter
+                            && iconScale > 20 && sx > 0 && sx < windowWidth && syFix > 0 && syFix < windowHeight) {
+
+                        draw(icon, sx, syFix, itemScale, itemScale)
+                    }
+                }
+            }
 
             drawMyself(tuple4(null, selfX, selfY, selfDirection))
             drawPawns(typeLocation)
@@ -1099,7 +1223,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val (sx, sy) = Vector2(x, y).mapToWindow()
 
 
-                        if (VehicleInfoToggles == 2)compaseFont.draw(spriteBatch, "BIKE", sx + 15, windowHeight - sy - 2)
+                        if (VehicleInfoToggles == 2) compaseFont.draw(spriteBatch, "BIKE", sx + 15, windowHeight - sy - 2)
 
                         spriteBatch.draw(
                                 BikeBLUE,
@@ -1111,7 +1235,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val v_y = actor.velocity.y
                         if (actor.attachChildren.isNotEmpty() || v_x * v_x + v_y * v_y > 40) {
                             spriteBatch.draw(
-                                            BikeRED,
+                                    BikeRED,
                                     sx + 2, windowHeight - sy - 2, 4.toFloat() / 2,
                                     4.toFloat() / 2, 4.toFloat(), 4.toFloat(), iconScale / 3, iconScale / 3,
                                     dir * -1, 0, 0, 64, 64, true, false
@@ -1210,7 +1334,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val (actor, x, y, dir) = it
                         val (sx, sy) = Vector2(x, y).mapToWindow()
 
-                        if (VehicleInfoToggles == 2)compaseFont.draw(spriteBatch, "PICKUP", sx + 15, windowHeight - sy - 2)
+                        if (VehicleInfoToggles == 2) compaseFont.draw(spriteBatch, "PICKUP", sx + 15, windowHeight - sy - 2)
 
                         spriteBatch.draw(
                                 pickupBLUE,
@@ -1271,12 +1395,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                         val (actor, x, y, dir) = it
                         val (sx, sy) = Vector2(x, y).mapToWindow()
                         val playerStateGUID = actorWithPlayerState[actor!!.netGUID] ?: return@forEach
-                        val PlayerState= actors[playerStateGUID] as? PlayerState ?: return@forEach
+                        val PlayerState = actors[playerStateGUID] as? PlayerState ?: return@forEach
                         val teamNumber = PlayerState.teamNumber
-                        val attach=actor.attachChildren.firstOrNull()
-                        val teamId=isTeamMate(actor)
+                        val attach = actor.attachChildren.firstOrNull()
+                        val teamId = isTeamMate(actor)
 
-                        if (teamId > 0 ) {
+                        if (teamId > 0) {
 
                             // Can't wait for the "Omg Players don't draw issues
                             spriteBatch.draw(
@@ -1364,7 +1488,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         }
     }
 
-    private fun drawPlayerNames(players:MutableList<renderInfo>?) {
+    private fun drawPlayerNames(players: MutableList<renderInfo>?) {
         players?.forEach {
 
             val zoom = camera.zoom
@@ -1507,12 +1631,12 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             for (i in 0..7)
                 for (j in 0..9) {
                     rectLine(0f, i * unit + j * unit2, gridWidth, i * unit + j * unit2, 100f)
-                   rectLine(i * unit + j * unit2, 0f, i * unit + j * unit2, gridWidth, 100f)
+                    rectLine(i * unit + j * unit2, 0f, i * unit + j * unit2, gridWidth, 100f)
                 }
             color = GRAY
             //thick grid
-           for (i in 0..7) {
-               rectLine(0f, i * unit, gridWidth, i * unit, 500f)
+            for (i in 0..7) {
+                rectLine(0f, i * unit, gridWidth, i * unit, 500f)
                 rectLine(i * unit, 0f, i * unit, gridWidth, 500f)
             }
         }
@@ -1562,9 +1686,9 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     }
 
 
-    private fun isTeamMate(actor:Actor?):Int {
-        val playerStateGUID=actorWithPlayerState[actor?.netGUID ?: return 0] ?: return 0
-        val playerState=actors[playerStateGUID] as? PlayerState ?: return 0
+    private fun isTeamMate(actor: Actor?): Int {
+        val playerStateGUID = actorWithPlayerState[actor?.netGUID ?: return 0] ?: return 0
+        val playerState = actors[playerStateGUID] as? PlayerState ?: return 0
         return team[playerState.name] ?: 0
     }
 
@@ -1593,6 +1717,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         menuFontOFF.dispose()
         hporange.dispose()
         hpgreen.dispose()
+        itemAtlas.dispose()
         hpred.dispose()
         corpseboximage.dispose()
         AirDropAllTheColors.dispose()
