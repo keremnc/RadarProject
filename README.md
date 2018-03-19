@@ -18,10 +18,10 @@ You can't filter level 3 gear (always enabled)
 * NUMPAD_1 -> Filter Weapon
 * NUMPAD_2 -> Filter Equip
 * NUMPAD_3 -> Filter Meds
-* NUMPAD_4 -> Filter Throw
-* NUMPAD_5 -> Filter Attach
-* NUMPAD_6 -> Filter Scope
-* NUMPAD_0 -> Filter Ammo
+* NUMPAD_4 -> Filter Attach
+* NUMPAD_5 -> Filter Scope
+* NUMPAD_6 -> Filter Ammo
+* NUMPAD_0 -> Filter Throw
 
 #### Zooms:
 * NUMPAD_8 -> Looting - Combat -Scouting
