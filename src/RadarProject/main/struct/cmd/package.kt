@@ -8,6 +8,8 @@ import main.struct.*
 import main.struct.Archetype.*
 import main.struct.Bunch
 import main.struct.cmd.Replicator.processors
+import pubgradar.struct.cmd.DroppedItemCMD
+import pubgradar.struct.cmd.DroppedItemGroupRootComponentCMD
 import java.util.*
 
 typealias cmdProcessor = (Actor, Bunch, NetGuidCacheObject?, Int, HashMap<String, Any?>) -> Boolean

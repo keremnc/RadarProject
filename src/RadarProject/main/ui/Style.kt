@@ -16,6 +16,9 @@ const val healthBarHeight = 2000f
 const val playerRadius = 4000f
 const val corpseRadius = 150f
 const val itemRadius = 100f
+const val itemScale = 30f
+const val staticItemScale = 300f
+
 
 //Aordp
 const val airDropRadius = 4000f

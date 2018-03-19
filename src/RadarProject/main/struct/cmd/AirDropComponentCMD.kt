@@ -3,6 +3,7 @@ package main.struct.cmd
 import main.deserializer.channel.ActorChannel.Companion.airDropLocation
 import main.struct.*
 import main.struct.cmd.*
+import pubgradar.struct.cmd.updateItemBag
 
 object AirDropComponentCMD {
     fun process(actor:Actor,bunch:Bunch,repObj:NetGuidCacheObject?,waitingHandle:Int,data:HashMap<String,Any?>):Boolean {

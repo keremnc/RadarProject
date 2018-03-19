@@ -1,154 +1,171 @@
-@file:Suppress("NAME_SHADOWING")
-package main.struct
-
 class Item {
     companion object {
-        // Group
-        // Inner, Outer ?
-        private val category = mapOf(
-                "Attach" to mapOf(
-                        "Weapon" to mapOf(
+        private var count = 0
+        private fun count() = count--
+        val order = mapOf(
+                "Item_Weapon_AWM_C" to count(),
+                "Item_Weapon_M24_C" to count(),
+                "Item_Weapon_Kar98k_C" to count(),
+                "Item_Weapon_AUG_C" to count(),
+                "Item_Weapon_M249_C" to count(),
+                "Item_Weapon_Mk14_C" to count(),
+                "Item_Weapon_Groza_C" to count(),
+                "Item_Weapon_HK416_C" to count(),
+                "Item_Weapon_SCAR-L_C" to count(),
+                "Item_Weapon_Mini14_C" to count(),
+                "Item_Weapon_M16A4_C" to count(),
+                "Item_Weapon_SKS_C" to count(),
+                "Item_Weapon_AK47_C" to count(),
+                "Item_Weapon_DP28_C" to count(),
+                "Item_Weapon_Saiga12_C" to count(),
+                "Item_Weapon_UMP_C" to count(),
+                "Item_Weapon_Vector_C" to count(),
+                "Item_Weapon_UZI_C" to count(),
+                "Item_Weapon_VSS_C" to count(),
+                "Item_Weapon_Thompson_C" to count(),
+                "Item_Weapon_Berreta686_C" to count(),
+                "Item_Weapon_Winchester_C" to count(),
+                "Item_Weapon_Win94_C" to count(),
+                "Item_Weapon_G18_C" to count(),
+                "Item_Weapon_SawenOff_C" to count(),
+                "Item_Weapon_Rhino_C" to count(),
+                "Item_Weapon_M1911_C" to count(),
+                "Item_Weapon_NagantM1895_C" to count(),
+                "Item_Weapon_M9_C" to count(),
 
-                                "Lower" to mapOf(
-                                        "AngledForeGrip" to "A.Grip",
-                                        "Foregrip" to "V.Grip"
-                                ),
-                                "Magazine" to mapOf(
-                                        "Extended" to mapOf(
-                                                "Medium" to "U.Ext",
-                                                "Large" to "AR.Ext",
-                                                "SniperRifle" to "S.Ext"
-                                        ),
-                                        "ExtendedQuickDraw" to mapOf(
-                                                "Medium" to "U.ExtQ",
-                                                "Large" to "AR.ExtQ",
-                                                "SniperRifle" to "S.ExtQ"
-                                        )
-                                ),
-                                "Muzzle" to mapOf(
-                                        "Choke" to "Choke",
-                                        "Compensator" to mapOf(
-                                                "Large" to "AR.Comp",
-                                                "SniperRifle" to "S.Comp"
-                                        ),
-                                        "FlashHider" to mapOf(
-                                                "Large" to "FH",
-                                                "SniperRifle" to "FH"
-                                        ),
-                                        "Suppressor" to mapOf(
-                                                "Medium" to "U.Supp",
-                                                "Large" to "AR.Supp",
-                                                "SniperRifle" to "S.Supp"
-                                        )
-                                ),
-                                "Stock" to mapOf(
-                                        "AR" to "AR.Stock",
-                                        "SniperRifle" to mapOf(
-                                                "BulletLoops" to "S.Loops",
-                                                "CheekPad" to "CheekPad"
-                                        )
-                                ),
-                                "Upper" to mapOf(
-                                        "DotSight" to "DotSight",
-                                        "Aimpoint" to "Aimpoint",
-                                        "Holosight" to "Holosight",
-                                        "ACOG" to "ACOG",
-                                        "CQBSS" to "CQBSS"
-                                )
-                        )
-                ),
 
-                "Weapon" to mapOf(
-                        "Grenade" to "Grenade",
-                        "SmokeBomb" to "SmokeBomb",
-                        "FlashBang" to "FlashBang",
-                        "Molotov" to "Molotov",
-                        "M16A4" to "M16A4",
-                        "HK416" to "HK416",
-                        "Kar98k" to "Kar98k",
-                        "SCAR-L" to "SCAR-L",
-                        "AK47" to "AK47",
-                        "SKS" to "SKS",
-                        "Mini14" to "Mini14",
-                        "DP28" to "DP28",
-                        "UMP" to "UMP",
-                        "Vector" to "Vector",
-                        "Pan" to "Pan",
-                        "SawnOff" to "SawnOff",
-                        "UZI" to "UZI",
-                        "G1B" to "G1B",
-                        "AUG" to "AUG",
-                        "Groza" to "Groza",
-                        "AWM" to "AWM",
-                        "M24" to "M24",
-                        "M249" to "M249",
-                        "Mk14" to "Mk14"),
+                "Item_Ghillie_02_C" to count(),
+                "Item_Ghillie_01_C" to count(),
 
-                "Boost" to mapOf(
-                        "EnergyDrink" to "Drink",
-                        "AdrenalineSyringe" to "AdrenalineSyringe",
-                        "PainKiller" to "Pain"
-                ),
-                "Heal" to mapOf(
-                        "FirstAid" to "FirstAid",
-                        "MedKit" to "MedKit"
-                ),
-                "Ammo" to mapOf(
-                        "9mm" to "9mm",
-                        "45mm" to "45mm",
-                        "556mm" to "556mm",
-                        "762mm" to "762mm",
-                        "300mm" to "300mm"
-                ),
-                "Armor" to mapOf(
-                        "C" to mapOf("01" to mapOf("Lv3" to "Armor3")),
-                        "D" to mapOf("01" to mapOf("Lv2" to "Armor2"))),
-                "Back" to mapOf(
-                        "C" to mapOf(
-                                "01" to mapOf("Lv3" to "Bag3"),
-                                "02" to mapOf("Lv3" to "Bag3")),
-                        "F" to mapOf(
-                                "01" to mapOf("Lv2" to "Bag2"),
-                                "02" to mapOf("Lv2" to "Bag2"))),
-                "Head" to mapOf(
-                        "F" to mapOf(
-                                "01" to mapOf("Lv2" to "Helmet2"),
-                                "02" to mapOf("Lv2" to "Helmet2")),
-                        "G" to mapOf("01" to mapOf("Lv3" to "Helmet3")))
 
-        ) as Map<String, Any>
+                "Item_Ammo_762mm_C" to count(),
+                "Item_Ammo_556mm_C" to count(),
+                "Item_Ammo_300Magnum_C" to count(),
 
-        /**
-         * @return null if not good, or short name for it
-         */
-        fun isGood(description: String): String? {
-            try {
-                val start = description.indexOf("Item_")
-                if (start == -1) return null//not item
-                val words = description.substring(start + 5).split("_")
-                var c = category
-                for (word in words) {
-                    if (word !in c) return null
-                    val sub: Any? = c[word]
-                    if (sub is String) return sub
-                    c = sub as Map<String, Any>
-                }
-            } catch (e: Exception) {
-            }
-            return null
-        }
+
+                "Item_Weapon_Molotov_C" to count(),
+                "Item_Weapon_FlashBang_C" to count(),
+                "Item_Weapon_Grenade_C" to count(),
+                "Item_Weapon_SmokeBomb_C" to count(),
+
+
+                "Item_Attach_Weapon_Upper_Holosight_C" to count(),
+                "Item_Attach_Weapon_Upper_DotSight_01_C" to count(),
+                "Item_Attach_Weapon_Upper_Aimpoint_C" to count(),
+                "Item_Attach_Weapon_Upper_CQBSS_C" to count(),
+                "Item_Attach_Weapon_Upper_ACOG_01_C" to count(),
+
+
+                "Item_Attach_Weapon_Muzzle_Suppressor_SniperRifle_C" to count(),
+                "Item_Attach_Weapon_Muzzle_Suppressor_Large_C" to count(),
+                "Item_Attach_Weapon_Muzzle_Compensator_SniperRifle_C" to count(),
+                "Item_Attach_Weapon_Muzzle_Compensator_Large_C" to count(),
+                "Item_Attach_Weapon_Muzzle_FlashHider_SniperRifle_C" to count(),
+                "Item_Attach_Weapon_Muzzle_FlashHider_Large_C" to count(),
+                "Item_Attach_Weapon_Muzzle_Compensator_Medium_C" to count(),
+                "Item_Attach_Weapon_Muzzle_Suppressor_Medium_C" to count(),
+                "Item_Attach_Weapon_Muzzle_FlashHider_Medium_C" to count(),
+
+
+                "Item_Heal_MedKit_C" to count(),
+                "Item_Heal_FirstAid_C" to count(),
+                "Item_Boost_PainKiller_C" to count(),
+                "Item_Boost_EnergyDrink_C" to count(),
+                "Item_Boost_AdrenalineSyringe_C" to count(),
+
+
+
+                "Item_Armor_D_01_Lv2_C" to count(),
+                "Item_Armor_C_01_Lv3_C" to count(),
+                "Item_Head_G_01_Lv3_C" to count(),
+                "Item_Head_F_02_Lv2_C" to count(),
+                "Item_Head_F_01_Lv2_C" to count(),
+                "Item_Back_C_02_Lv3_C" to count(),
+                "Item_Back_C_01_Lv3_C" to count(),
+                "Item_Back_F_01_Lv2_C" to count(),
+                "Item_Back_F_02_Lv2_C" to count(),
+
+
+                "Item_Back_E_02_Lv1_C" to count(),
+                "Item_Back_E_01_Lv1_C" to count(),
+                "Item_Armor_E_01_Lv1_C" to count(),
+                "Item_Head_E_01_Lv1_C" to count(),
+                "Item_Head_E_02_Lv1_C" to count(),
+
+
+
+                "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_SniperRifle_C" to count(),
+                "Item_Attach_Weapon_Magazine_Extended_SniperRifle_C" to count(),
+                "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_Large_C" to count(),
+                "Item_Attach_Weapon_Magazine_Extended_Large_C" to count(),
+                "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_Medium_C" to count(),
+                "Item_Attach_Weapon_Magazine_Extended_Medium_C" to count(),
+
+
+
+                "Item_Attach_Weapon_Stock_SniperRifle_CheekPad_C" to count(),
+                "Item_Attach_Weapon_Stock_SniperRifle_BulletLoops_C" to count(),
+                "Item_Attach_Weapon_Stock_AR_Composite_C" to count(),
+                "Item_Attach_Weapon_Lower_Foregrip_C" to count(),
+                "Item_Attach_Weapon_Lower_AngledForeGrip_C" to count(),
+
+
+
+                "Item_Weapon_Pan_C" to count(),
+                "Item_Ammo_9mm_C" to count(),
+                "Item_Heal_Bandage_C" to count(),
+                "Item_Ammo_45ACP_C" to count(),
+                "Item_Ammo_12Guage_C" to count()
+        )
+
+        val category = mapOf(
+                "Item" to mapOf(
+                        "Boost" to mapOf(
+                                "PainKiller" to "(PainKiller)",
+                                "EnergyDrink" to "(EnergyDrink)",
+                                "Adrenaline" to "(Adrenaline)"
+                        ),
+                        "Heal" to mapOf(
+                                "FirstAid" to "(FirstAid)",
+                                "MedKit" to "(MedKit)",
+                                "Bandage" to "(Bandage)"
+                        ),
+                        "Armor" to mapOf(
+                                "C" to "[Armor3]",
+                                "D" to "[Armor2]",
+                                "E" to "[Armor1]"),
+                        "Back" to mapOf(
+                                "B" to "[ParachutePack]",
+                                "C" to mapOf(
+                                        "01" to "[Bag3]",
+                                        "02" to "[Bag3]"),
+                                "F" to mapOf(
+                                        "01" to "[Bag2]",
+                                        "02" to "[Bag2]"),
+                                "E" to mapOf(
+                                        "01" to "[Bag1]",
+                                        "02" to "[Bag1]")),
+                        "Head" to mapOf(
+                                "G" to "[Helmet3]",
+                                "F" to mapOf(
+                                        "01" to "[Helmet2]",
+                                        "02" to "[Helmet2]"),
+                                "E" to mapOf(
+                                        "01" to "[Helmet1]",
+                                        "02" to "[Helmet1]")))
+        )
 
         fun simplify(description:String):String {
             try {
                 val words = description.split("_")
-                var c = category
+                var c:Map<*,*> = category
                 for (word in words) {
                     if (word !in c)
                         return description
                     val sub:Any? = c[word]
                     if (sub is String)
                         return sub
-                    c = sub as Map<String, Any>
+                    c = sub as Map<*,*>
                 }
             } catch (e:Exception) {
             }

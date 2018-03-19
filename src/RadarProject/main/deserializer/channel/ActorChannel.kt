@@ -14,6 +14,8 @@ import main.struct.cmd.PlayerStateCMD.selfID
 import main.util.*
 import java.util.concurrent.ConcurrentHashMap
 import main.struct.cmd.receiveProperties
+import main.ui.itemIcons
+import pubgradar.util.DynamicArray
 
 class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYPE_ACTOR, client) {
     companion object: GameListener {
@@ -28,11 +30,11 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
         val droppedItemToItem = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
         val droppedItemGroup = ConcurrentHashMap<NetworkGUID, DynamicArray<NetworkGUID?>>()
         val droppedItemCompToItem = ConcurrentHashMap<NetworkGUID, NetworkGUID>()
-        val crateitems=ConcurrentHashMap<NetworkGUID,DynamicArray<NetworkGUID?>>()
+        val crateitems = ConcurrentHashMap<NetworkGUID, DynamicArray<NetworkGUID?>>()
         val corpseLocation = ConcurrentHashMap<NetworkGUID, Vector3>()
         val actorHasWeapons = ConcurrentHashMap<NetworkGUID, DynamicArray<NetworkGUID?>>()
         val weapons = ConcurrentHashMap<NetworkGUID, Actor>()
-        val itemBag=ConcurrentHashMap<NetworkGUID,DynamicArray<NetworkGUID?>>()
+        val itemBag = ConcurrentHashMap<NetworkGUID, DynamicArray<NetworkGUID?>>()
 
 
 
@@ -62,7 +64,7 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
         }
         ProcessBunch(bunch)
     }
-    fun ProcessBunch(bunch: Bunch) {
+    fun ProcessBunch(bunch:Bunch) {
         if (client && actor == null) {
             if (!bunch.bOpen) {
                 return
@@ -83,16 +85,15 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
             //header
             val bHasRepLayout = bunch.readBit()
             val bIsActor = bunch.readBit()
-            var repObj: NetGuidCacheObject?
+            var repObj:NetGuidCacheObject?
             if (bIsActor) {
-                repObj = NetGuidCacheObject(actor.type.name, actor.netGUID)
+                repObj = NetGuidCacheObject(actor.type.name,actor.netGUID)
             } else {
-                val (netguid, _subobj) = bunch.readObject()//SubObject, SubObjectNetGUID
+                val (netguid,_subobj) = bunch.readObject()//SubObject, SubObjectNetGUID
                 if (!client) {
                     if (_subobj == null)// The server should never need to create sub objects
                         continue
                     repObj = _subobj
-                    bugln { "$actor hasSubObj $repObj" }
                 } else {
                     val bStablyNamed = bunch.readBit()
                     if (bStablyNamed) {// If this is a stably named sub-object, we shouldn't need to create it
@@ -100,23 +101,21 @@ class ActorChannel(ChIndex: Int, client: Boolean = true): Channel(ChIndex, CHTYP
                             continue
                         repObj = _subobj
                     } else {
-                        val (classGUID, classObj) = bunch.readObject()//SubOjbectClass,SubObjectClassNetGUID
-
-                    // adding some stuff
-
-                        if (classObj != null && (actor.type == DroopedItemGroup || actor.type == DroppedItem || actor.type == AirDrop)) {
-                            val sn = Item.isGood(classObj.pathName)
-                            if (sn != null)
-                                droppedItemLocation[netguid] = tuple2(Vector2(actor.location.x, actor.location.y), sn)
-                        }
-
+                        val (classGUID,classObj) = bunch.readObject()//SubOjbectClass,SubObjectClassNetGUID
                         if (!classGUID.isValid() || classObj == null)
                             continue
-                        val subobj = NetGuidCacheObject(classObj.pathName, classGUID)
-                        guidCache.registerNetGUID_Client(netguid, subobj)
+                        when (actor.type) {
+                            DroopedItemGroup,DroppedItem,AirDrop,DeathDropItemPackage -> {
+                                if (classObj.pathName in itemIcons)
+                                    droppedItemLocation[netguid] = tuple2(Vector2(actor.location.x, actor.location.y), classObj.pathName)
+                            }
+                            else -> {
+                            }
+                        }
+                        val subobj = NetGuidCacheObject(classObj.pathName,classGUID)
+                        guidCache.registerNetGUID_Client(netguid,subobj)
                         repObj = guidCache.getObjectFromNetGUID(netguid)
                     }
-
                 }
             }
             val NumPayloadBits = bunch.readIntPacked()
