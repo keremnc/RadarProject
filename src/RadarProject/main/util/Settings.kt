@@ -29,7 +29,7 @@ class Settings {
             val littleFont_color: Color = Color.WHITE,
 
             val nameFont_size: Int = 10,
-            val nameFont_color: Color = Color.WHITE,
+            val nameFont_color: Color = Color.BLACK,
 
             val itemFont_size: Int = 6,
             val itemFont_color: Color = Color.WHITE,
