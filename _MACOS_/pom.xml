@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>main</groupId>
     <artifactId>RadarProject</artifactId>
     <version>Jerry1211-FORK</version>
+
     <properties>
         <libGdx.version>1.9.6</libGdx.version>
         <commons.math.version>3.6.1</commons.math.version>
@@ -20,9 +22,8 @@
         <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
         <kotlin.version>1.2.30</kotlin.version>
         <kotlin.coroutines>0.21</kotlin.coroutines>
-        <maven.build.timestamp.format>YYYY.MM.dd.HHmm</maven.build.timestamp.format>
-        <buildNumber>${maven.build.timestamp}</buildNumber>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -127,13 +128,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <sourceDirectory>src/</sourceDirectory>
-        <resources>
-            <resource>
-                <directory>src/RadarProject/resources/</directory>
-            </resource>
-        </resources>
+
+   <resources>
+     <resource>
+       <directory>src/RadarProject/resources/</directory>
+     </resource>
+   </resources>
+
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -201,34 +206,8 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>com.akathist.maven.plugins.launch4j</groupId>
-                <artifactId>launch4j-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>l4j-clui</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>launch4j</goal>
-                        </goals>
-                        <configuration>
-                            <headerType>console</headerType>
-                            <jar>target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</jar>
-                            <outfile>archive/${project.artifactId}.exe</outfile>
-                            <icon>src/RadarProject/resources/icons/application.ico</icon>
-                            <supportUrl>https://github.com/Jerry1211/RadarProject</supportUrl>
-                            <classPath>
-                                <mainClass>main.GameKt</mainClass>
-                                <addDependencies>true</addDependencies>
-                                <preCp>anything</preCp>
-                            </classPath>
-                            <jre>
-                                <minVersion>1.8.0</minVersion>
-                            </jre>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
         </plugins>
     </build>
+
 </project>

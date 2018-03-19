@@ -337,7 +337,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         // Level 2 & 3 Toggle
 
-                F6 -> {
+             /*   F6 -> {
                     if (filterArmorBag <= 4) {
                         filterArmorBag += 1
                     }
@@ -361,7 +361,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
                     }
                     }
                 }
-
+*/
         // Zoom In/Out || Overrides Max/Min Zoom
             MINUS -> camera.zoom = camera.zoom + 0.00525f
             PLUS -> camera.zoom = camera.zoom - 0.00525f
@@ -828,7 +828,7 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         level2Filter = if (filterLvl2 != 1) {
             arrayListOf("")
         } else {
-            arrayListOf("Bag2", "Armor2", "Helmet2")
+            arrayListOf("Bag2", "Armor2", "Helmet2","Bag3", "Armor3", "Helmet3")
         }
         level3Filter = if (filterLvl3 != 1) {
             arrayListOf("")

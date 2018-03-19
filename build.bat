@@ -1,3 +1,2 @@
-mvn package
-
+mvn install
 pause
