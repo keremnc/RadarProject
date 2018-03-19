@@ -848,11 +848,11 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         } else {
             arrayListOf("Bag2", "Armor2", "Helmet2","Bag3", "Armor3", "Helmet3")
         }
-        level3Filter = if (filterLvl3 != 1) {
-            arrayListOf("")
-        } else {
-            arrayListOf("Bag3", "Armor3", "Helmet3")
-        }
+//        level3Filter = if (filterLvl3 != 1) {
+//            arrayListOf("")
+//        } else {
+//            arrayListOf("Bag3", "Armor3", "Helmet3")
+//        }
         paint(itemCamera.combined) {
             //Draw Corpse Icon
             corpseLocation.values.forEach {
