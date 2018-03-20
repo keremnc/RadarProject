@@ -50,12 +50,16 @@ fun main(args: Array<String>) {
             println("Loading PCAP File.")
 
             Sniffer.sniffLocationOffline()
-            val ui = GLMap()
+            val settings = main.util.Settings()
+            var jsonsettings = settings.loadsettings()
+            val ui = GLMap(jsonsettings)
             ui.show()
         }
         else -> {
             Sniffer.sniffLocationOnline()
-            val ui = GLMap()
+            val settings = main.util.Settings()
+            val jsonsettings = settings.loadsettings()
+            val ui = GLMap(jsonsettings)
             ui.show()
         }
     }

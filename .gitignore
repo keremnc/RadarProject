@@ -1,3 +1,7 @@
 target/
 .idea
 logall.txt
+
+settings\.json
+*.pcap
+*.log
