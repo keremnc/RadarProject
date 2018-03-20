@@ -69,10 +69,11 @@ import main.struct.cmd.selfAttachTo
 import main.struct.cmd.selfHeight
 import main.struct.cmd.selfCoords
 import main.struct.cmd.selfDirection
+import main.util.Settings
+import main.util.tuple5
 import org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR
 import org.lwjgl.opengl.GL11.glTexParameterfv
 import org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER
-import main.util.tuple5
 import java.text.DecimalFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -81,7 +82,7 @@ import kotlin.math.*
 val itemIcons = HashMap<String, TextureAtlas.AtlasRegion>()
 typealias renderInfo = tuple5<Actor, Float, Float, Float, Float>
 
-class GLMap : InputAdapter(), ApplicationListener, GameListener {
+class GLMap( val jsonsettings: Settings.jsonsettings) : InputAdapter(), ApplicationListener, GameListener {
     companion object {
         operator fun Vector3.component1(): Float = x
         operator fun Vector3.component2(): Float = y
@@ -479,71 +480,88 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
         val generatorHub = FreeTypeFontGenerator(Gdx.files.internal("font/AGENCYFB.TTF"))
         val paramHub = FreeTypeFontParameter()
         paramHub.characters = DEFAULT_CHARS
-        paramHub.size = 30
-        paramHub.color = WHITE
+        paramHub.size = jsonsettings.hubFont_size
+        paramHub.color = jsonsettings.hubFont_color
         hubFont = generatorHub.generateFont(paramHub)
-        paramHub.color = Color(1f, 1f, 1f, 0.4f)
+        paramHub.color = jsonsettings.hubFontShadow_color
         hubFontShadow = generatorHub.generateFont(paramHub)
-        paramHub.size = 16
-        paramHub.color = WHITE
+        paramHub.size = jsonsettings.espFont_size
+        paramHub.color = jsonsettings.espFont_color
         espFont = generatorHub.generateFont(paramHub)
-        paramHub.color = Color(1f, 1f, 1f, 0.2f)
+        paramHub.color = jsonsettings.espFontShadow_color
         espFontShadow = generatorHub.generateFont(paramHub)
+
+        //Scarjit [19.03.2018] Is this part actually doing anything ?
         val generatorNumber = FreeTypeFontGenerator(Gdx.files.internal("font/NUMBER.TTF"))
         val paramNumber = FreeTypeFontParameter()
         paramNumber.characters = DEFAULT_CHARS
-        paramNumber.size = 24
-        paramNumber.color = WHITE
+        paramNumber.size = jsonsettings.largeFont_size
+        paramNumber.color = jsonsettings.largeFont_color
         largeFont = generatorNumber.generateFont(paramNumber)
+
         val generator = FreeTypeFontGenerator(Gdx.files.internal("font/GOTHICB.TTF"))
         val param = FreeTypeFontParameter()
         param.characters = DEFAULT_CHARS
-        param.size = 38
-        param.color = WHITE
+        param.size = jsonsettings.largeFont_size2
+        param.color = jsonsettings.largeFont_color2
         largeFont = generator.generateFont(param)
-        param.size = 15
-        param.color = WHITE
+
+        //Scarjit [19.03.2018] Is this part actually doing anything ?
+        param.size = jsonsettings.littleFont_size
+        param.color = jsonsettings.littleFont_color
         littleFont = generator.generateFont(param)
-        param.color = BLACK
-        param.size = 12
+
+        param.size = jsonsettings.nameFont_size
+        param.color = jsonsettings.nameFont_color
         nameFont = generator.generateFont(param)
-        param.color = WHITE
-        param.size = 6
+
+        param.size = jsonsettings.itemFont_size
+        param.color = jsonsettings.itemFont_color
         itemFont = generator.generateFont(param)
-        val compaseColor = Color(0f, 0.95f, 1f, 1f)  //Turquoise1
-        param.color = compaseColor
-        param.size = 10
+
+        param.size = jsonsettings.compaseFont_size
+        param.color = jsonsettings.compaseFont_color
         compaseFont = generator.generateFont(param)
-        param.color = Color(0f, 0f, 0f, 0.5f)
+
+        param.color = jsonsettings.compaseFontShadow_color
         compaseFontShadow = generator.generateFont(param)
+
         param.characters = DEFAULT_CHARS
-        param.size = 20
-        param.color = WHITE
+        param.size = jsonsettings.littleFont_size2
+        param.color = jsonsettings.littleFont_color2
         littleFont = generator.generateFont(param)
-        param.color = Color(0f, 0f, 0f, 0.5f)
+
+        param.color = jsonsettings.littleFontShadow_color
         littleFontShadow = generator.generateFont(param)
-        param.color = WHITE
-        param.size = 12
+
+        param.size = jsonsettings.menuFont_size
+        param.color = jsonsettings.menuFont_color
         menuFont = generator.generateFont(param)
-        param.color = GREEN
-        param.size = 12
+
+        param.size = jsonsettings.menuFontOn_size
+        param.color = jsonsettings.menuFontOn_color
         menuFontOn = generator.generateFont(param)
-        param.color = RED
-        param.size = 12
+
+        param.size = jsonsettings.menuFontOFF_size
+        param.color = jsonsettings.menuFontOFF_color
         menuFontOFF = generator.generateFont(param)
-        param.color = ORANGE
-        param.size = 12
+
+        param.size = jsonsettings.hporange_size
+        param.color = jsonsettings.hporange_color
         hporange = generator.generateFont(param)
-        param.color = GREEN
-        param.size = 12
+
+        param.size = jsonsettings.hpgreen_size
+        param.color = jsonsettings.hpgreen_color
         hpgreen = generator.generateFont(param)
-        param.color = RED
-        param.size = 12
+
+        param.size = jsonsettings.hpred_size
+        param.color = jsonsettings.hpred_color
         hpred = generator.generateFont(param)
 
 
+
         generatorHub.dispose()
-        generatorNumber.dispose()
+        //generatorNumber.dispose()
         generator.dispose()
     }
 
@@ -683,7 +701,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
             safeZoneHint()
             drawPlayerNames(typeLocation[Player])
             //drawMyself(tuple4(null, selfX, selfY, selfDir.angle()))
-
 
             val camnum = camera.zoom
 
