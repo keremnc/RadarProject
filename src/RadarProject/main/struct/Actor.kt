@@ -4,8 +4,8 @@ import com.badlogic.gdx.math.Vector3
 import main.struct.Archetype.*
 import main.struct.Archetype.Companion.fromArchetype
 import main.struct.Archetype.PlayerState
-import main.util.DynamicArray
 import main.util.tuple2
+import pubgradar.util.DynamicArray
 import java.util.Collections.newSetFromMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -121,7 +121,7 @@ class PlayerState(netGUID:NetworkGUID,type:Archetype,typeName:String): Actor(net
     var teamNumber=0
     var numKills=0
     val equipableItems=DynamicArray<tuple2<String,Float>?>(3,0)
-    val castableItems=DynamicArray<tuple2<String,Int>?>(8,0)
+    val castableItems= DynamicArray<tuple2<String,Int>?>(8,0)
 }
 
 class Vehicle(netGUID:NetworkGUID,type:Archetype,typeName:String): Actor(netGUID,type,typeName) {
